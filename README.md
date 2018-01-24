@@ -1,0 +1,2 @@
+# zilliqa-wallet
+Wallet
