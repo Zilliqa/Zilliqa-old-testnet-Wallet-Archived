@@ -23,19 +23,27 @@ import sha3 from 'bcrypto/lib/sha3';
 import schnorr from 'schnorr';
 
 
+declare const Buffer
+
 @Injectable()
 export class ZilliqaService {
 
   zlib: any;
   node: any;
-  walletData: {};
+  walletData: {
+    version: null,
+    encryptedWalletFile: null,
+    decryptedWalletFile: null
+  };
   nodeData: {};
   userWallet: Wallet
 
   constructor(private http: HttpClient) {
     this.userWallet = new Wallet()
     this.walletData = {
-      version: null
+      version: null,
+      encryptedWalletFile: null,
+      decryptedWalletFile: null
     };
     this.nodeData = {
       networkId: null,
@@ -75,8 +83,51 @@ export class ZilliqaService {
     return this.userWallet
   }
 
+  uploadWalletFile(contents) {
+    this.walletData.encryptedWalletFile = contents
+  }
+
   generateWalletJson(passphrase) {
-    return "TEST"
+    // let walletJson = {
+    //   "address": this.userWallet.address,
+    //   "crypto":{
+    //     "cipher":"aes-128-ctr",
+    //     "ciphertext":"0f6d343b2a34fe571639235fc16250823c6fe3bc30525d98c41dfdf21a97aedb",
+    //     "cipherparams":{
+    //       "iv":"cabce7fb34e4881870a2419b93f6c796"
+    //     },
+    //     "kdf":"scrypt",
+    //     "kdfparams": {
+    //       "dklen": 32,
+    //       "n": 262144,
+    //       "p": 1,
+    //       "r": 8,
+    //       "salt": "1af9c4a44cf45fe6fb03dcc126fa56cb0f9e81463683dd6493fb4dc76edddd51"
+    //     },
+    //     "mac":"5cf4012fffd1fbe41b122386122350c3825a709619224961a16e908c2a366aa6"
+    //   },
+    //   "id":"eddd71dd-7ad6-4cd3-bc1a-11022f7db76c",
+    //   "version": 3
+    // }
+    return "TEST" // walletJson
+  }
+
+  checkEncryptedWallet() {
+    // todo - verify that the encrypted wallet uploaded by user has a valid structure
+    if (this.walletData.encryptedWalletFile == null) 
+      return false
+
+    return true
+  }
+
+  decryptWalletFile(passphrase) {
+    // todo - use the passphrase and this.walletData.encryptedWalletFile to get private key
+    if (passphrase && passphrase.length > 0) {
+      this.importWallet('11235fa10eff017b2362642e473017674a5f20c3239c4304dcfada2f39b2ebed')
+      return 1
+    } else {
+      return 0
+    }
   }
 
   getBalance(address) {
@@ -103,20 +154,29 @@ export class ZilliqaService {
 
     this.userWallet = {
       address: address,
+      privateKey: key.toString('hex'),
       balance: 0
     }
 
-    return {privateKey: key.toString('hex')}  // don't store private key
+    return {privateKey: key.toString('hex')}
   }
 
   importWallet(privateKey) {
-    // TODO checkValid(privateKey)
-    this.userWallet = {
-      address: 'abc',
-      balance: 0
+    // check if private key valid
+    try {
+      if (secp256k1.privateKeyVerify(Buffer.from(privateKey, 'hex'))) {
+        // todo - fetch address/balance/nonce
+        this.userWallet = {
+          address: '8fad8e7253f1b0cb776d6ee5866fe568ec9c45b9', // sample public address
+          balance: 0,
+          privateKey: privateKey.toString('hex')
+        }
+        return true
+      }
+    } catch (e) {
+      // console.log(e)
     }
-    // if private key valid, return true else return false
-    return true
+    return false
   }
 
   parseWallet(uploadedWallet: File) {

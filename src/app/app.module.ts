@@ -18,6 +18,7 @@ import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
+import { CreateComponent } from './create/create.component';
 import { WalletComponent } from './wallet/wallet.component';
 import { WalletBaseComponent } from './wallet/walletBase/walletBase.component';
 import { WalletSendComponent } from './wallet/walletSend/walletSend.component';
@@ -31,6 +32,7 @@ import { AppRoutingModule } from './app-routing.module';
   declarations: [
     AppComponent,
     HomeComponent,
+    CreateComponent,
     WalletComponent,
     WalletBaseComponent,
     WalletSendComponent,

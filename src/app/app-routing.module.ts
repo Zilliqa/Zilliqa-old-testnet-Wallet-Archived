@@ -13,6 +13,7 @@ import { NgModule }             from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { HomeComponent }      from './home/home.component';
+import { CreateComponent } from './create/create.component';
 import { WalletComponent }      from './wallet/wallet.component';
 import { WalletBaseComponent }      from './wallet/walletBase/walletBase.component';
 import { WalletSendComponent }      from './wallet/walletSend/walletSend.component';
@@ -22,6 +23,7 @@ import { AuthGuardService }      from './auth-guard.service';
 const routes: Routes = [
 	{ path: '', redirectTo: '/home', pathMatch: 'full' },
 	{ path: 'home', component: HomeComponent },
+  { path: 'create', component: CreateComponent },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuardService],
   	children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },

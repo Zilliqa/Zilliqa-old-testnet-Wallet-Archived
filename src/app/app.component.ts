@@ -30,9 +30,9 @@ export class AppComponent {
 	}
 
 	ngOnInit() {
-		let that = this;
+		let that = this
 		this.zilliqaService.getInitData().then(function(data) {
-			that.data = data;
+			that.data = data
 		});
 	}
 }

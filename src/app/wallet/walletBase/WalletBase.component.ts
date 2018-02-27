@@ -22,12 +22,12 @@ import { ZilliqaService } from '../../zilliqa.service';
 })
 export class WalletBaseComponent implements OnInit {
 
-  privateKey: string
+  privateKeyDisplay: string
 	wallet: Wallet
 
   constructor(private zilliqaService: ZilliqaService) {
   	this.wallet = new Wallet()
-    this.privateKey = '**************************'
+    this.privateKeyDisplay = '**************************'
   }
 
   ngOnInit() {
@@ -35,11 +35,11 @@ export class WalletBaseComponent implements OnInit {
   }
 
   revealPrivateKey() {
-    if (this.privateKey == undefined || this.privateKey.length == 0 || this.privateKey[0] != '*')
+    if (this.privateKeyDisplay == undefined || this.privateKeyDisplay.length == 0 || this.privateKeyDisplay[0] != '*')
       // if privateKey is uninitialized or empty or doesn't begin with *, hide it
-      this.privateKey = '**************************'
+      this.privateKeyDisplay = '**************************'
     else
-      this.privateKey = this.wallet.address
+      this.privateKeyDisplay = this.wallet.privateKey
   }
 
   downloadWallet() {
