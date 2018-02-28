@@ -18,10 +18,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { zLib } from 'z-lib';
-import {secp256k1, hash256} from 'bcrypto';
+import { secp256k1, randomBytes, pbkdf2Sync, scrypt } from 'bcrypto';
+import * as aesjs from 'aes-js';
 import sha3 from 'bcrypto/lib/sha3';
 import schnorr from 'schnorr';
-
+import uuidv4 from 'uuid/v4';
 
 declare const Buffer
 
@@ -88,28 +89,42 @@ export class ZilliqaService {
   }
 
   generateWalletJson(passphrase) {
-    // let walletJson = {
-    //   "address": this.userWallet.address,
-    //   "crypto":{
-    //     "cipher":"aes-128-ctr",
-    //     "ciphertext":"0f6d343b2a34fe571639235fc16250823c6fe3bc30525d98c41dfdf21a97aedb",
-    //     "cipherparams":{
-    //       "iv":"cabce7fb34e4881870a2419b93f6c796"
-    //     },
-    //     "kdf":"scrypt",
-    //     "kdfparams": {
-    //       "dklen": 32,
-    //       "n": 262144,
-    //       "p": 1,
-    //       "r": 8,
-    //       "salt": "1af9c4a44cf45fe6fb03dcc126fa56cb0f9e81463683dd6493fb4dc76edddd51"
-    //     },
-    //     "mac":"5cf4012fffd1fbe41b122386122350c3825a709619224961a16e908c2a366aa6"
-    //   },
-    //   "id":"eddd71dd-7ad6-4cd3-bc1a-11022f7db76c",
-    //   "version": 3
-    // }
-    return "TEST" // walletJson
+    let privateKey = new Buffer(this.userWallet.privateKey, 'hex')
+    let address = this.userWallet.address
+
+    let salt = randomBytes(32);
+    let iv = randomBytes(16);
+
+    // key derivation function used is scrypt along with standard params
+    let derivedKey = scrypt.derive(new Buffer(passphrase), salt, 262144, 1, 8, 32)
+
+    // ciphertext is private key encrypted with aes-128-ctr
+    let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
+    let ciphertext = aesctr.encrypt(privateKey)
+
+    var result = {
+        address: address,
+        crypto: {
+            cipher: "aes-128-ctr",
+            cipherparams: {
+                iv: iv.toString('hex'),
+            },
+            ciphertext: new Buffer(ciphertext).toString('hex'),
+            kdf: "scrypt",
+            kdfparams: {
+                dklen: 32,
+                n: 262144,
+                r: 1,
+                p: 8,
+                salt: salt.toString('hex'),
+            },
+            mac: sha3.digest(Buffer.concat([derivedKey.slice(16, 32), new Buffer(ciphertext)])).toString('hex'),
+        },
+        id: uuidv4({random: randomBytes(16)}),
+        version: 3,
+    }
+
+    return JSON.stringify(result)
   }
 
   checkEncryptedWallet() {
@@ -121,12 +136,31 @@ export class ZilliqaService {
   }
 
   decryptWalletFile(passphrase) {
-    // todo - use the passphrase and this.walletData.encryptedWalletFile to get private key
-    if (passphrase && passphrase.length > 0) {
-      this.importWallet('11235fa10eff017b2362642e473017674a5f20c3239c4304dcfada2f39b2ebed')
-      return 1
+    // use the passphrase and keystore json file to get private key
+    if (passphrase && passphrase.length >= 8) {
+      let walletJson = JSON.parse(this.walletData.encryptedWalletFile)
+      let ciphertext = new Buffer(walletJson['crypto']['ciphertext'], 'hex')
+      let iv = new Buffer(walletJson['crypto']['cipherparams']['iv'], 'hex')
+      let salt = new Buffer(walletJson['crypto']['kdfparams']['salt'], 'hex')
+      
+      // recreate the derived key using scrypt and the same parameters
+      let derivedKey = scrypt.derive(new Buffer(passphrase), salt, 262144, 1, 8, 32)
+
+      // check passphrase using mac
+      let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
+      if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
+        alert('Incorrect passphrase!')
+        return 0
+      } else {
+        alert('correct passphrase!')
+      }
+
+      let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
+      let decryptedSeed = aesctr.decrypt(ciphertext);
+
+      return this.importWallet(new Buffer(decryptedSeed).toString('hex'))
     } else {
-      return 0
+      return false
     }
   }
 
@@ -162,12 +196,14 @@ export class ZilliqaService {
   }
 
   importWallet(privateKey) {
+    if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
+
     // check if private key valid
     try {
-      if (secp256k1.privateKeyVerify(Buffer.from(privateKey, 'hex'))) {
+      if (secp256k1.privateKeyVerify(privateKey)) {
         // todo - fetch address/balance/nonce
         this.userWallet = {
-          address: '8fad8e7253f1b0cb776d6ee5866fe568ec9c45b9', // sample public address
+          address: '8fad8e7253f1b0cb776d6ee5866fe568ec9c45b9', // TODO - get from API
           balance: 0,
           privateKey: privateKey.toString('hex')
         }

@@ -39,6 +39,15 @@
 </div>
 <div class="row mt-2">
 	<div class="col text-center">
-		<h4>Download JSON Keyfile: <a class="btn btn-large zblue text-white" (click)="downloadWallet()">Download</a></h4>
+		<h4>Download JSON Keyfile (Encrypted with Passphrase):</h4> 
+		<input [(ngModel)]="walletEncryptPassphrase" 
+			type="password" 
+			placeholder="Enter passphrase (min 8 characters)"
+			style="min-width: 300px;" >&nbsp;&nbsp;
+		<button class="btn btn-large zblue text-white" 
+				style="cursor:pointer;" 
+				[disabled]="!validPassphrase()" 
+				(click)="downloadWallet()">Download
+		</button>
 	</div>
 </div>

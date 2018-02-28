@@ -23,6 +23,7 @@ import { ZilliqaService } from '../../zilliqa.service';
 export class WalletBaseComponent implements OnInit {
 
   privateKeyDisplay: string
+  walletEncryptPassphrase
 	wallet: Wallet
 
   constructor(private zilliqaService: ZilliqaService) {
@@ -42,18 +43,25 @@ export class WalletBaseComponent implements OnInit {
       this.privateKeyDisplay = this.wallet.privateKey
   }
 
+  validPassphrase() {
+    return (this.walletEncryptPassphrase && this.walletEncryptPassphrase.length >= 8)
+  }
+
+  getWalletFilename() {
+    return 'UTC--' + (new Date()).toJSON() + '.0--' + this.wallet.address + '.json'
+  }
+
   downloadWallet() {
-    let text = this.zilliqaService.generateWalletJson('testPassphrase')
+    let text = this.zilliqaService.generateWalletJson(this.walletEncryptPassphrase)
+    let filename = this.getWalletFilename()
 
-    let element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', 'wallet.json');
-
+    // generate file for download
+    let element = document.createElement('a')
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
+    element.setAttribute('download', filename)
     element.style.display = 'none';
     document.body.appendChild(element);
-
     element.click();
-
     document.body.removeChild(element);
   }
 }
