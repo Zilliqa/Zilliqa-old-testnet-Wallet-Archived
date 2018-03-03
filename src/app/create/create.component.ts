@@ -58,6 +58,7 @@ export class CreateComponent implements OnInit {
       this.wallet = new Wallet()
       this.generatedPrivateKey = '';
     }
+
     if ([7,8,9].indexOf(newState) > -1) {
       // reset all variables in import wallet flow
       this.uploadedWallet = null
@@ -73,10 +74,13 @@ export class CreateComponent implements OnInit {
   }
 
   importWallet() {
-    if (this.zilliqaService.importWallet(this.importPrivateKey))
-      this.setState(6)
-    else
-      this.setState(7)
+    let that = this
+    this.zilliqaService.importWallet(this.importPrivateKey).then(function(data) {
+      if (data.result)
+        that.setState(6)
+      else
+        that.setState(7)
+    })
   }
 
   selectWallet(files: FileList) {
@@ -97,12 +101,14 @@ export class CreateComponent implements OnInit {
       // check if encrypted wallet is valid
       this.setState(9);
     }
-    if (this.zilliqaService.decryptWalletFile(this.walletDecryptKey)) {
-      // correct passphrase
-      this.setState(6)
-    } else {
-      // incorrect passphrase
-      this.setState(8)
-    }
+
+    let that = this
+    this.zilliqaService.decryptWalletFile(this.walletDecryptKey).then(function(data) {
+      if (data.result) {
+        that.setState(6) // correct passphrase & balance fetched successfully
+      } else {
+        that.setState(8) // incorrect passphrase or getBalance call failed
+      }
+    }) 
   }
 }

@@ -68,11 +68,11 @@ export class ZilliqaService {
       if (err) deferred.reject(err);
 
       that.node.getLatestDsBlock(function(err, data2) {
-        if (err) deferred.reject(err);
+        if (err || !data2.result) deferred.reject(err);
 
         deferred.resolve({
           networkId: data1.result,
-          latestDSBlock: data2.result
+          latestDSBlock: data2.result.blockNum
         });
       });
     });
@@ -139,18 +139,20 @@ export class ZilliqaService {
     // use the passphrase and keystore json file to get private key
     if (passphrase && passphrase.length >= 8) {
       let walletJson = JSON.parse(this.walletData.encryptedWalletFile)
+
       let ciphertext = new Buffer(walletJson['crypto']['ciphertext'], 'hex')
       let iv = new Buffer(walletJson['crypto']['cipherparams']['iv'], 'hex')
       let salt = new Buffer(walletJson['crypto']['kdfparams']['salt'], 'hex')
+      let kdfparams = walletJson['crypto']['kdfparams']
       
       // recreate the derived key using scrypt and the same parameters
-      let derivedKey = scrypt.derive(new Buffer(passphrase), salt, 262144, 1, 8, 32)
+      let derivedKey = scrypt.derive(new Buffer(passphrase), salt, kdfparams['n'], kdfparams['r'], kdfparams['p'], kdfparams['dklen'])
 
       // check passphrase using mac
       let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
       if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
         alert('Incorrect passphrase!')
-        return 0
+        return this.falseDeferred()
       } else {
         alert('correct passphrase!')
       }
@@ -160,8 +162,15 @@ export class ZilliqaService {
 
       return this.importWallet(new Buffer(decryptedSeed).toString('hex'))
     } else {
-      return false
+      // needs to return deferred obj to match return type of if-true condition
+      return this.falseDeferred()
     }
+  }
+
+  falseDeferred() {
+    var deferred = new $.Deferred()
+    deferred.resolve({result: false})
+    return deferred.promise()
   }
 
   getBalance(address) {
@@ -172,51 +181,76 @@ export class ZilliqaService {
 
       deferred.resolve({
         address: address,
-        balance: data.result
+        balance: data.result.balance,
+        nonce: data.result.nonce
       })
     })
 
     return deferred.promise()
   }
 
+  getAddressFromPrivateKey(privateKey) {
+    if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
+
+    let pubKey = secp256k1.publicKeyCreate(privateKey, true)
+    let pubKeyHash = sha3.digest(pubKey) // sha3 hash of the public key
+    let address = pubKeyHash.toString('hex', 12) // rightmost 160 bits/20 bytes of the hash
+
+    return address
+  }
+
   createWallet() {
     let key = secp256k1.generatePrivateKey()
-    let pub = secp256k1.publicKeyCreate(key, true)
 
-    let publicKeyHash = sha3.digest(pub) // sha3 hash of the public key
-    let address = publicKeyHash.toString('hex', 12) // rightmost 160 bits/20 bytes of the hash
-
+    // account will be registered only when it receives ZIL
     this.userWallet = {
-      address: address,
+      address: this.getAddressFromPrivateKey(key),
       privateKey: key.toString('hex'),
-      balance: 0
+      balance: 0,
+      nonce: 0
     }
 
+    // don't store private key
     return {privateKey: key.toString('hex')}
   }
 
   importWallet(privateKey) {
     if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
 
+    var deferred = new $.Deferred()
+
     // check if private key valid
     try {
       if (secp256k1.privateKeyVerify(privateKey)) {
-        // todo - fetch address/balance/nonce
-        this.userWallet = {
-          address: '8fad8e7253f1b0cb776d6ee5866fe568ec9c45b9', // TODO - get from API
-          balance: 0,
-          privateKey: privateKey.toString('hex')
-        }
-        return true
+        let addr = this.getAddressFromPrivateKey(privateKey)
+
+        // get balance from API
+        let that = this
+        this.node.getBalance({address: addr}, function(err, data) {
+          if (err || data.error) deferred.reject(err)
+
+          that.userWallet = {
+            address: addr,
+            balance: data.result.balance,
+            nonce: data.result.nonce,
+            privateKey: privateKey.toString('hex')
+          }
+
+          deferred.resolve({
+            result: true
+          })
+        })
+      } else {
+        deferred.resolve({
+          result: false
+        })
       }
     } catch (e) {
-      // console.log(e)
+      deferred.resolve({
+        result: false
+      })
     }
-    return false
-  }
-
-  parseWallet(uploadedWallet: File) {
-
+    return deferred.promise()
   }
 
   resetWallet() {
@@ -226,18 +260,19 @@ export class ZilliqaService {
   sendPayment(payment) {
     // checkValid(payment.address)
     var deferred = new $.Deferred()
+    let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
 
     let tx = {
-      nonce: 0,
+      nonce: this.userWallet.nonce++,
       to: payment.address,
       amount: payment.amount,
-      pubKey: '',
+      pubKey: pubKey.toString('hex'),
       gasPrice: payment.gasPrice,
       gasLimit: payment.gasLimit
     }
 
     this.node.createTransaction(tx, function(err, data) {
-      if (err) deferred.reject(err)
+      if (err || data.error) deferred.reject(err)
 
       deferred.resolve({
         txId: data.result
@@ -250,8 +285,8 @@ export class ZilliqaService {
   getTxHistory() {
     var deferred = new $.Deferred()
 
-    this.node.getTransactionHistory({address: this.userWallet.address}, function(err, data) {
-      if (err) deferred.reject(err)
+    // this.node.getTransactionHistory({address: this.userWallet.address}, function(err, data) {
+    //   if (err) deferred.reject(err)
 
       // deferred.resolve(data.result)
       deferred.resolve(
@@ -280,7 +315,7 @@ export class ZilliqaService {
           amount: 32
         }]
       )
-    })
+    // })
 
     return deferred.promise()
   }
@@ -302,38 +337,4 @@ export class ZilliqaService {
       return of(result as T);
     };
   }
-
-  // searchHeroes(term: string): Observable<Hero[]> {
-  //   if (!term.trim()) {
-  //     // return empty array in case of blank search term
-  //     return of([]);
-  //   }
-  //   return this.http.get<Hero[]>(`api/heroes/name=${term}`)
-  //     .pipe(
-  //       catchError(this.handleError<Hero[]>('searchHeroes', []))
-  //     );
-  // }
-
-  //  getHeroes(): Observable<Hero[]> {
-  //   return this.http.get<Hero[]>(this.heroesUrl)
-  //     .pipe(
-  //       catchError(this.handleError('getHeroes', []));
-  //     );
-  // }
-
-  // getHero(id: number): Observable<Hero> {
-  //   const url = `${this.heroesUrl}/${id}`;
-
-  //   return this.http.get<Hero>(url)
-  //     .pipe(
-  //       catchError(this.handleError<Hero>(`getHero id=${id}`));
-  //     );
-  // }
-
-  // updateHero(id: number): Observable<any> {
-  //   return this.http.put(this.heroesUrl, hero, httpOptions)
-  //     .pipe(
-  //       catchError(this.handleError<any>('updateHero'))
-  //     );
-  // }
 }
