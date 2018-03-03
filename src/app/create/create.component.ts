@@ -97,13 +97,12 @@ export class CreateComponent implements OnInit {
       // check if encrypted wallet is valid
       this.setState(9);
     }
-    let ret = this.zilliqaService.decryptWalletFile(this.walletDecryptKey)
-    if (ret === 0) {
-      // incorrect passphrase
-      this.setState(8)
-    } else if (ret == 1) {
+    if (this.zilliqaService.decryptWalletFile(this.walletDecryptKey)) {
       // correct passphrase
       this.setState(6)
+    } else {
+      // incorrect passphrase
+      this.setState(8)
     }
   }
 }
