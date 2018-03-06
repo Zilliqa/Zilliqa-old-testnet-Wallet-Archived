@@ -28,8 +28,8 @@ const routes: Routes = [
   	children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },
   		{ path: 'base', component: WalletBaseComponent },
-  		{ path: 'send', component: WalletSendComponent },
-  		{ path: 'history', component: WalletHistoryComponent }
+  		{ path: 'send', component: WalletSendComponent }
+  		// { path: 'history', component: WalletHistoryComponent }
   	]
   }
 ];
