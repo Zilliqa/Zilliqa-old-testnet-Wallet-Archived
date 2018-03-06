@@ -9,7 +9,8 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+
 
 import { Wallet } from '../wallet'
 import { ZilliqaService } from '../../zilliqa.service';
@@ -25,10 +26,12 @@ export class WalletBaseComponent implements OnInit {
   privateKeyDisplay: string
   walletEncryptPassphrase
 	wallet: Wallet
+  loading: boolean
 
-  constructor(private zilliqaService: ZilliqaService) {
+  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
   	this.wallet = new Wallet()
     this.privateKeyDisplay = '**************************'
+    this.loading = false
   }
 
   ngOnInit() {
@@ -52,16 +55,25 @@ export class WalletBaseComponent implements OnInit {
   }
 
   downloadWallet() {
+    this.loading = true
+    this.ref.detectChanges()
+    setTimeout(() => {this.downloadWalletAsync()}, 100)
+  }
+
+  downloadWalletAsync() {
     let text = this.zilliqaService.generateWalletJson(this.walletEncryptPassphrase)
+  
     let filename = this.getWalletFilename()
 
     // generate file for download
     let element = document.createElement('a')
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
     element.setAttribute('download', filename)
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    element.style.display = 'none'
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+
+    this.loading = false
   }
 }

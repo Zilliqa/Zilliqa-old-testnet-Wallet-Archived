@@ -49,5 +49,6 @@
 				[disabled]="!validPassphrase()" 
 				(click)="downloadWallet()">Download
 		</button>
+		<div *ngIf="loading == true" class="loadingOverlay"></div>
 	</div>
 </div>

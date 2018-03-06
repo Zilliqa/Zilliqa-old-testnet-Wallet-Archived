@@ -15,6 +15,7 @@ import { of } from 'rxjs/observable/of';
 import { catchError, map, tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
+import 'setimmediate';
 import $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { zLib } from 'z-lib';
@@ -22,6 +23,7 @@ import { secp256k1, randomBytes, pbkdf2Sync, scrypt } from 'bcrypto';
 import * as aesjs from 'aes-js';
 import sha3 from 'bcrypto/lib/sha3';
 import schnorr from 'schnorr';
+import * as Signature from 'elliptic/lib/elliptic/ec/signature';
 import uuidv4 from 'uuid/v4';
 
 declare const Buffer
@@ -97,7 +99,6 @@ export class ZilliqaService {
 
     // key derivation function used is scrypt along with standard params
     let derivedKey = scrypt.derive(new Buffer(passphrase), salt, 262144, 1, 8, 32)
-
     // ciphertext is private key encrypted with aes-128-ctr
     let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
     let ciphertext = aesctr.encrypt(privateKey)
@@ -151,10 +152,8 @@ export class ZilliqaService {
       // check passphrase using mac
       let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
       if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
-        alert('Incorrect passphrase!')
+        // Incorrect passphrase
         return this.falseDeferred()
-      } else {
-        alert('correct passphrase!')
       }
 
       let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
@@ -227,7 +226,7 @@ export class ZilliqaService {
         // get balance from API
         let that = this
         this.node.getBalance({address: addr}, function(err, data) {
-          if (err || data.error) deferred.reject(err)
+          if (err || data.error) deferred.resolve({result: false})
 
           that.userWallet = {
             address: addr,
@@ -262,7 +261,8 @@ export class ZilliqaService {
     var deferred = new $.Deferred()
     let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
 
-    let tx = {
+    let txn = {
+      version: 1,
       nonce: this.userWallet.nonce++,
       to: payment.address,
       amount: payment.amount,
@@ -271,7 +271,16 @@ export class ZilliqaService {
       gasLimit: payment.gasLimit
     }
 
-    this.node.createTransaction(tx, function(err, data) {
+    let r = '', s = ''
+    while (r.length != 64 && s.length != 64) {
+      // sometimes 63 length string is generated
+      let sig = schnorr.sign(Buffer.from(JSON.stringify(txn)), new Buffer(this.userWallet.privateKey, 'hex'))
+      r = sig.r.toString('hex')
+      s = sig.s.toString('hex')
+    }
+    txn['signature'] = r + s
+
+    this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) deferred.reject(err)
 
       deferred.resolve({
