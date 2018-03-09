@@ -22,7 +22,6 @@ import { zLib } from 'z-lib';
 import { secp256k1, randomBytes, pbkdf2Sync, scrypt } from 'bcrypto';
 import * as aesjs from 'aes-js';
 import sha3 from 'bcrypto/lib/sha3';
-import schnorr from 'schnorr';
 import * as Signature from 'elliptic/lib/elliptic/ec/signature';
 import uuidv4 from 'uuid/v4';
 
@@ -256,13 +255,36 @@ export class ZilliqaService {
     this.userWallet = new Wallet()
   }
 
+  intToByteArray(x, sizeOfInt)
+  {
+    var bytes = []
+
+    let binaryX = x.toString(16)
+    let binaryRepX = []
+
+    var i
+    for(i = 0 ; i < binaryX.length ; i++) {
+      binaryRepX[i] = parseInt(binaryX[i])
+    }
+
+    for(i = 0 ; i < (sizeOfInt-binaryX.length) ; i++){
+      bytes.push(0)
+    }
+
+    for(i = 0 ; i < binaryX.length ; i++) {
+      bytes.push(binaryRepX[i])
+    }
+
+    return bytes;
+  }
+
   sendPayment(payment) {
     // checkValid(payment.address)
     var deferred = new $.Deferred()
     let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
 
     let txn = {
-      version: 1,
+      version: 0,
       nonce: this.userWallet.nonce++,
       to: payment.address,
       amount: payment.amount,
@@ -271,10 +293,16 @@ export class ZilliqaService {
       gasLimit: payment.gasLimit
     }
 
+    var msg = this.intToByteArray(txn.version, 8).join('') +
+              this.intToByteArray(txn.nonce, 64).join('') +
+              txn.to +
+              txn.pubKey +
+              this.intToByteArray(txn.amount, 64).join('')
+
     let r = '', s = ''
     while (r.length != 64 && s.length != 64) {
       // sometimes 63 length string is generated
-      let sig = schnorr.sign(Buffer.from(JSON.stringify(txn)), new Buffer(this.userWallet.privateKey, 'hex'))
+      let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
       r = sig.r.toString('hex')
       s = sig.s.toString('hex')
     }
