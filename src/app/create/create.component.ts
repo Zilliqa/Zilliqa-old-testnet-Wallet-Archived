@@ -9,7 +9,7 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 
 import { Wallet } from '../wallet/wallet'
 import { ZilliqaService } from '../zilliqa.service';
@@ -39,17 +39,20 @@ export class CreateComponent implements OnInit {
   uploadedWallet: File = null
   walletDecryptKey: string
   wallet: Wallet
+  loading: boolean
   
   @Input() importPrivateKey = ''
 
-  constructor(private zilliqaService: ZilliqaService) { 
+  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) { 
     this.state = 0;
     this.wallet = new Wallet()
+    this.loading = false
   }
 
   ngOnInit() {
     this.state = 0;
     this.wallet = new Wallet()
+    this.loading = false
   }
 
   setState(newState) {
@@ -99,16 +102,22 @@ export class CreateComponent implements OnInit {
   decryptWallet() {
     if (!(this.zilliqaService.checkEncryptedWallet())) {
       // check if encrypted wallet is valid
-      this.setState(9);
+      this.setState(9)
     }
+    this.loading = true
+    this.ref.detectChanges()
+    setTimeout(() => {this.decryptWalletAsync()}, 100)
+  }
 
+  decryptWalletAsync() {
     let that = this
     this.zilliqaService.decryptWalletFile(this.walletDecryptKey).then(function(data) {
+      that.loading = false
       if (data.result) {
         that.setState(6) // correct passphrase & balance fetched successfully
       } else {
         that.setState(8) // incorrect passphrase or getBalance call failed
       }
-    }) 
+    })
   }
 }
