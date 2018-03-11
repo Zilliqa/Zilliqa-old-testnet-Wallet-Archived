@@ -16,11 +16,11 @@ import { ZilliqaService } from '../../zilliqa.service';
 
 
 @Component({
-  selector: 'app-wallet-history',
-  templateUrl: './WalletHistory.component.html',
-  styleUrls: ['./WalletHistory.component.css']
+  selector: 'app-wallethistory',
+  templateUrl: './wallethistory.component.html',
+  styleUrls: ['./wallethistory.component.css']
 })
-export class WalletHistoryComponent implements OnInit {
+export class WallethistoryComponent implements OnInit {
 
 	txHistory = []
   wallet: Wallet

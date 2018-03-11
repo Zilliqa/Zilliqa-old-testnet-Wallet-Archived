@@ -16,14 +16,13 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import 'setimmediate';
-import $ from 'jquery';
+import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { zLib } from 'z-lib';
-import { secp256k1, randomBytes, pbkdf2Sync, scrypt } from 'bcrypto';
+import { secp256k1, randomBytes, pbkdf2Sync, scrypt, sha3 } from 'bcrypto';
 import * as aesjs from 'aes-js';
-import sha3 from 'bcrypto/lib/sha3';
 import * as Signature from 'elliptic/lib/elliptic/ec/signature';
-import uuidv4 from 'uuid/v4';
+import * as uuid from 'uuid';
 
 declare const Buffer
 
@@ -73,7 +72,7 @@ export class ZilliqaService {
 
         deferred.resolve({
           networkId: data1.result,
-          latestDSBlock: data2.result.blockNum
+          latestDSBlock: data2.result.header.blockNum
         });
       });
     });
@@ -120,7 +119,7 @@ export class ZilliqaService {
             },
             mac: sha3.digest(Buffer.concat([derivedKey.slice(16, 32), new Buffer(ciphertext)])).toString('hex'),
         },
-        id: uuidv4({random: randomBytes(16)}),
+        id: uuid.v4({random: randomBytes(16)}),
         version: 3,
     }
 
@@ -213,9 +212,16 @@ export class ZilliqaService {
   }
 
   importWallet(privateKey) {
-    if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
-
     var deferred = new $.Deferred()
+
+    if (!!(privateKey.match(/[0-9a-fA-F]{64}/)) == false) {
+      deferred.reject({
+        error: 'Invalid private key.'
+      })
+      return deferred.promise()
+    }
+
+    if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
 
     // check if private key valid
     try {
@@ -225,7 +231,10 @@ export class ZilliqaService {
         // get balance from API
         let that = this
         this.node.getBalance({address: addr}, function(err, data) {
-          if (err || data.error) deferred.resolve({result: false})
+          if (err || data.error) {
+            deferred.reject({error: err})
+            return deferred.promise()
+          }
 
           that.userWallet = {
             address: addr,
@@ -239,13 +248,13 @@ export class ZilliqaService {
           })
         })
       } else {
-        deferred.resolve({
-          result: false
+        deferred.reject({
+          error: 'Invalid private key.'
         })
       }
     } catch (e) {
-      deferred.resolve({
-        result: false
+      deferred.reject({
+        error: e
       })
     }
     return deferred.promise()
@@ -285,7 +294,7 @@ export class ZilliqaService {
 
     let txn = {
       version: 0,
-      nonce: this.userWallet.nonce++,
+      nonce: this.userWallet.nonce,
       to: payment.address,
       amount: payment.amount,
       pubKey: pubKey.toString('hex'),
@@ -299,14 +308,8 @@ export class ZilliqaService {
               txn.pubKey +
               this.intToByteArray(txn.amount, 64).join('')
 
-    let r = '', s = ''
-    while (r.length != 64 && s.length != 64) {
-      // sometimes 63 length string is generated
-      let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
-      r = sig.r.toString('hex')
-      s = sig.s.toString('hex')
-    }
-    txn['signature'] = r + s
+    let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
+    txn['signature'] = sig.r.toString('hex') + sig.s.toString('hex')
 
     this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) deferred.reject(err)

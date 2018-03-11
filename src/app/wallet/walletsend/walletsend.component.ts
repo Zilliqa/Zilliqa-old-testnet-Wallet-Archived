@@ -16,12 +16,12 @@ import { ZilliqaService } from '../../zilliqa.service';
 
 
 @Component({
-  selector: 'app-wallet-send',
-  templateUrl: './WalletSend.component.html',
-  styleUrls: ['./WalletSend.component.css']
+  selector: 'app-walletsend',
+  templateUrl: './walletsend.component.html',
+  styleUrls: ['./walletsend.component.css']
 })
 
-export class WalletSendComponent implements OnInit {
+export class WalletsendComponent implements OnInit {
 
   /* STATES:
    * 0: send payment - input

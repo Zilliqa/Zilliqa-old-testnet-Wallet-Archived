@@ -168,3 +168,18 @@
 		</div>
 	</div>
 </div>
+
+<!-- import wallet flow #7 -->
+<!-- no network connectivity -->
+<div *ngIf="state == 10">
+	<div class="row mt-5">
+		<div class="col text-center">
+			<h4>Sorry, the wallet cannot connect to the network.</h4>
+		</div>
+	</div>
+	<div class="row mt-2">
+		<div class="col text-center">
+			<a class="btn zblue text-white" (click)="setState(0)">Back</a>
+		</div>
+	</div>
+</div>

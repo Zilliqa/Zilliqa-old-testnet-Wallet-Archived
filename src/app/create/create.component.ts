@@ -118,6 +118,8 @@ export class CreateComponent implements OnInit {
       } else {
         that.setState(8) // incorrect passphrase or getBalance call failed
       }
+    }, function(data) {
+      that.setState(10)
     })
   }
 }
