@@ -15,9 +15,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent }      from './home/home.component';
 import { CreateComponent } from './create/create.component';
 import { WalletComponent }      from './wallet/wallet.component';
-import { WalletBaseComponent }      from './wallet/walletBase/walletBase.component';
-import { WalletSendComponent }      from './wallet/walletSend/walletSend.component';
-import { WalletHistoryComponent }      from './wallet/walletHistory/walletHistory.component';
+import { WalletbaseComponent }      from './wallet/walletbase/walletbase.component';
+import { WalletsendComponent }      from './wallet/walletsend/walletsend.component';
+import { WallethistoryComponent }      from './wallet/wallethistory/wallethistory.component';
 import { AuthGuardService }      from './auth-guard.service';
 
 const routes: Routes = [
@@ -27,9 +27,9 @@ const routes: Routes = [
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuardService],
   	children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },
-  		{ path: 'base', component: WalletBaseComponent },
-  		{ path: 'send', component: WalletSendComponent }
-  		// { path: 'history', component: WalletHistoryComponent }
+  		{ path: 'base', component: WalletbaseComponent },
+  		{ path: 'send', component: WalletsendComponent }
+  		// { path: 'history', component: WallethistoryComponent }
   	]
   }
 ];

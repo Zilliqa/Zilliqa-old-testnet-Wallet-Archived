@@ -20,9 +20,9 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { CreateComponent } from './create/create.component';
 import { WalletComponent } from './wallet/wallet.component';
-import { WalletBaseComponent } from './wallet/walletBase/walletBase.component';
-import { WalletSendComponent } from './wallet/walletSend/walletSend.component';
-import { WalletHistoryComponent } from './wallet/walletHistory/walletHistory.component';
+import { WalletbaseComponent } from './wallet/walletbase/walletbase.component';
+import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
+import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
 import { ZilliqaService } from './zilliqa.service';
 import { AuthGuardService } from './auth-guard.service';
 import { AppRoutingModule } from './app-routing.module';
@@ -34,9 +34,9 @@ import { AppRoutingModule } from './app-routing.module';
     HomeComponent,
     CreateComponent,
     WalletComponent,
-    WalletBaseComponent,
-    WalletSendComponent,
-    WalletHistoryComponent
+    WalletbaseComponent,
+    WalletsendComponent,
+    WallethistoryComponent
   ],
   imports: [
     BrowserModule,

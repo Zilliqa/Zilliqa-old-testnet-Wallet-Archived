@@ -17,20 +17,21 @@ import { ZilliqaService } from '../../zilliqa.service';
 
 
 @Component({
-  selector: 'app-wallet-base',
-  templateUrl: './WalletBase.component.html',
-  styleUrls: ['./WalletBase.component.css']
+  selector: 'app-walletbase',
+  templateUrl: './walletbase.component.html',
+  styleUrls: ['./walletbase.component.css']
 })
-export class WalletBaseComponent implements OnInit {
+export class WalletbaseComponent implements OnInit {
 
   privateKeyDisplay: string
-  walletEncryptPassphrase
+  walletEncryptPassphrase: string
 	wallet: Wallet
   loading: boolean
 
   constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
   	this.wallet = new Wallet()
     this.privateKeyDisplay = '**************************'
+    this.walletEncryptPassphrase = ''
     this.loading = false
   }
 
