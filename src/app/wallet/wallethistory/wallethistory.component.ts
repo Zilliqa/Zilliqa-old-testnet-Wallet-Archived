@@ -32,10 +32,6 @@ export class WallethistoryComponent implements OnInit {
 
   ngOnInit() {
   	this.wallet = this.zilliqaService.getWallet()
-    let that = this
-    this.zilliqaService.getTxHistory().then(function(data) {
-      that.txHistory = data
-    })
   }
 
 }
