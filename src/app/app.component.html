@@ -1,3 +1,5 @@
+<div class='network-bar' [ngClass]="{'invisible': this.networkService.networkBarVisible == false, 'green-connected': this.networkService.nodeConnected == true, 'red-disconnected': this.networkService.nodeConnected == false}" ><span class="network-bar-text">{{this.networkService.nodeStatus}}</span></div>
+
 <nav class="navbar navbar-expand-md navbar-light">
   <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>

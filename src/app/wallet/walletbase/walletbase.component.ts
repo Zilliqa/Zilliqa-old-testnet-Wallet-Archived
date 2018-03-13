@@ -25,11 +25,11 @@ export class WalletbaseComponent implements OnInit {
 
   privateKeyDisplay: string
   walletEncryptPassphrase: string
-	wallet: Wallet
+  wallet: Wallet
   loading: boolean
 
   constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
-  	this.wallet = new Wallet()
+    this.wallet = new Wallet()
     this.privateKeyDisplay = '**************************'
     this.walletEncryptPassphrase = ''
     this.loading = false

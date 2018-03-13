@@ -22,11 +22,11 @@ import { ZilliqaService } from '../../zilliqa.service';
 })
 export class WallethistoryComponent implements OnInit {
 
-	txHistory = []
+  txHistory = []
   wallet: Wallet
 
   constructor(private zilliqaService: ZilliqaService) { 
-  	this.wallet = new Wallet()
+    this.wallet = new Wallet()
     this.txHistory = []
   }
 

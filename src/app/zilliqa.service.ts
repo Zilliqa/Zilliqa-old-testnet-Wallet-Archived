@@ -71,7 +71,7 @@ export class ZilliqaService {
     var that = this;
 
     that.node.getNetworkId(function(err, data1) {
-      if (err) deferred.reject(err);
+      if (err || !data1.result) deferred.reject(err);
 
       that.node.getLatestDsBlock(function(err, data2) {
         if (err || !data2.result) deferred.reject(err);

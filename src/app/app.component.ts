@@ -12,6 +12,7 @@
 import { Component } from '@angular/core';
 
 import { ZilliqaService } from './zilliqa.service';
+import { NetworkService } from './network.service';
 
 @Component({
   selector: 'app-root',
@@ -20,19 +21,25 @@ import { ZilliqaService } from './zilliqa.service';
 })
 export class AppComponent {
 
-	data = {}
+  data: object
+  timers: any
 
-	constructor(private zilliqaService: ZilliqaService) { 
-		this.data = {
-			latestDSBlock: '',
-			networkId: ''
-		}
-	}
+  constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
+    this.data = {
+      latestDSBlock: '',
+      networkId: ''
+    }
+  }
 
-	ngOnInit() {
-		let that = this
-		this.zilliqaService.getInitData().then(function(data) {
-			that.data = data
-		});
-	}
+  ngOnInit() {
+    let that = this
+
+    // fetch initial stats
+    this.zilliqaService.getInitData().then(function(data) {
+      that.data = data
+    })
+
+    // checks the node connection status every 15 seconds
+    this.networkService.checkConnection()
+  }
 }
