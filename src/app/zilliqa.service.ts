@@ -309,7 +309,15 @@ export class ZilliqaService {
               this.intToByteArray(txn.amount, 64).join('')
 
     let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
-    txn['signature'] = sig.r.toString('hex') + sig.s.toString('hex')
+    let r = sig.r.toString('hex')
+    let s = sig.s.toString('hex')
+    while (r.length < 64) {
+      r = '0' + r
+    }
+    while (s.length < 64) {
+      s = '0' + s
+    }
+    txn['signature'] = r + s
 
     this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) deferred.reject(err)
