@@ -21,16 +21,16 @@ import { WallethistoryComponent }      from './wallet/wallethistory/wallethistor
 import { AuthGuardService }      from './auth-guard.service';
 
 const routes: Routes = [
-	{ path: '', redirectTo: '/home', pathMatch: 'full' },
-	{ path: 'home', component: HomeComponent },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'home', component: HomeComponent },
   { path: 'create', component: CreateComponent },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuardService],
-  	children: [
+    children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },
-  		{ path: 'base', component: WalletbaseComponent },
-  		{ path: 'send', component: WalletsendComponent }
-  		// { path: 'history', component: WallethistoryComponent }
-  	]
+      { path: 'base', component: WalletbaseComponent },
+      { path: 'send', component: WalletsendComponent }
+      // { path: 'history', component: WallethistoryComponent }
+    ]
   }
 ];
 

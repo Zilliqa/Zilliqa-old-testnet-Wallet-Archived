@@ -21,6 +21,22 @@ a {
 	font-size: 30px; 
 	line-height: 45px;
 }
+.network-bar {
+  position: absolute;
+  top: 0px;
+  left: 25%;
+  width: 50%;
+  text-align: center;
+}
+.network-bar-text {
+  color: white;
+}
+.red-disconnected {
+  background-color: red;
+}
+.green-connected {
+  background-color: green;
+}
 
 /* Absolute Center Spinner */
 .loadingOverlay {

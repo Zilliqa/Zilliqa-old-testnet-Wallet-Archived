@@ -22,20 +22,16 @@ import { ZilliqaService } from '../../zilliqa.service';
 })
 export class WallethistoryComponent implements OnInit {
 
-	txHistory = []
+  txHistory = []
   wallet: Wallet
 
   constructor(private zilliqaService: ZilliqaService) { 
-  	this.wallet = new Wallet()
+    this.wallet = new Wallet()
     this.txHistory = []
   }
 
   ngOnInit() {
   	this.wallet = this.zilliqaService.getWallet()
-    let that = this
-    this.zilliqaService.getTxHistory().then(function(data) {
-      that.txHistory = data
-    })
   }
 
 }

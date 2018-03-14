@@ -18,6 +18,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import 'setimmediate';
 import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
+import { Constants } from './constants';
 import { zLib } from 'z-lib';
 import { secp256k1, randomBytes, pbkdf2Sync, scrypt, sha3 } from 'bcrypto';
 import * as aesjs from 'aes-js';
@@ -33,8 +34,7 @@ export class ZilliqaService {
   node: any;
   walletData: {
     version: null,
-    encryptedWalletFile: null,
-    decryptedWalletFile: null
+    encryptedWalletFile: null
   };
   nodeData: {};
   userWallet: Wallet
@@ -43,8 +43,7 @@ export class ZilliqaService {
     this.userWallet = new Wallet()
     this.walletData = {
       version: null,
-      encryptedWalletFile: null,
-      decryptedWalletFile: null
+      encryptedWalletFile: null
     };
     this.nodeData = {
       networkId: null,
@@ -53,19 +52,26 @@ export class ZilliqaService {
     this.initLib();
   }
 
+  /**
+   * connect to a node using the zilliqa js lib and store its reference
+   */
   initLib() {
     this.zlib = new zLib({
-      nodeUrl: 'http://localhost:4201'
+      nodeUrl: Constants.NODE_URL
     });
     this.node = this.zlib.getNode();
   }
 
-  getInitData() {
+  /**
+   * fetch miscellaneous data like networkId/latest DS blocknum
+   * @returns {Promise} Promise object containing the required data
+   */
+  getInitData(): Promise<any> {
     var deferred = new $.Deferred();
     var that = this;
 
     that.node.getNetworkId(function(err, data1) {
-      if (err) deferred.reject(err);
+      if (err || !data1.result) deferred.reject(err);
 
       that.node.getLatestDsBlock(function(err, data2) {
         if (err || !data2.result) deferred.reject(err);
@@ -80,15 +86,28 @@ export class ZilliqaService {
     return deferred.promise();
   }
 
-  getWallet() {
+  /**
+   * fetch the current user account details
+   * @returns {Wallet} Wallet object containing the required data
+   */
+  getWallet(): Wallet {
     return this.userWallet
   }
 
-  uploadWalletFile(contents) {
+  /**
+   * store the file data uploaded by user
+   * @param {string} contents - the file data uploaded
+   */
+  uploadWalletFile(contents): void {
     this.walletData.encryptedWalletFile = contents
   }
 
-  generateWalletJson(passphrase) {
+  /**
+   * create a keystore json (wallet file) for an account containing the encrypted private key
+   * @param {string} passphrase - the passphrase to be used to encrypt the wallet
+   * @returns {string} string of the keystore json
+   */
+  generateWalletJson(passphrase): string {
     let privateKey = new Buffer(this.userWallet.privateKey, 'hex')
     let address = this.userWallet.address
 
@@ -126,15 +145,26 @@ export class ZilliqaService {
     return JSON.stringify(result)
   }
 
-  checkEncryptedWallet() {
-    // todo - verify that the encrypted wallet uploaded by user has a valid structure
+  /**
+   * verify that the encrypted wallet uploaded by user has a valid structure
+   * uses this.walletData
+   * @returns {boolean} if valid keystore json or not
+   */
+  checkEncryptedWallet(): boolean {
+    // todo - add more checks
     if (this.walletData.encryptedWalletFile == null) 
       return false
 
     return true
   }
 
-  decryptWalletFile(passphrase) {
+  /**
+   * process a keystore json file to retrieve the private key and import the account data
+   * uses this.walletData to import data and this.userWallet to store data separately
+   * @param {string} passphrase - the passphrase of the keystore json entered by the user
+   * @returns {Promise} Promise object containing boolean - if imported successfully or not
+   */
+  decryptWalletFile(passphrase): Promise<any> {
     // use the passphrase and keystore json file to get private key
     if (passphrase && passphrase.length >= 8) {
       let walletJson = JSON.parse(this.walletData.encryptedWalletFile)
@@ -151,7 +181,10 @@ export class ZilliqaService {
       let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
       if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
         // Incorrect passphrase
-        return this.falseDeferred()
+        // needs to return deferred obj to match return type of function
+        var deferred = new $.Deferred()
+        deferred.resolve({result: false})
+        return deferred.promise()
       }
 
       let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
@@ -159,18 +192,19 @@ export class ZilliqaService {
 
       return this.importWallet(new Buffer(decryptedSeed).toString('hex'))
     } else {
-      // needs to return deferred obj to match return type of if-true condition
-      return this.falseDeferred()
+      // needs to return deferred obj to match return type of function
+      var deferred = new $.Deferred()
+      deferred.resolve({result: false})
+      return deferred.promise()
     }
   }
 
-  falseDeferred() {
-    var deferred = new $.Deferred()
-    deferred.resolve({result: false})
-    return deferred.promise()
-  }
-
-  getBalance(address) {
+  /**
+   * get the account details an account using its public address
+   * @param {string} address - the public address of the account
+   * @returns {Promise} Promise object containing address, balance and nonce of the account
+   */
+  getBalance(address): Promise<any> {
     var deferred = new $.Deferred()
 
     this.node.getBalance({address: address}, function(err, data) {
@@ -186,7 +220,12 @@ export class ZilliqaService {
     return deferred.promise()
   }
 
-  getAddressFromPrivateKey(privateKey) {
+  /**
+   * get the public address of an account using its private key
+   * @param {string} privateKey - the private key of the account
+   * @returns {string} public address of the account
+   */
+  getAddressFromPrivateKey(privateKey): string {
     if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
 
     let pubKey = secp256k1.publicKeyCreate(privateKey, true)
@@ -196,7 +235,11 @@ export class ZilliqaService {
     return address
   }
 
-  createWallet() {
+  /**
+   * generate a new public-private keypair and use it to populate userWallet
+   * @returns {string} the newly created private key
+   */
+  createWallet(): string {
     let key = secp256k1.generatePrivateKey()
 
     // account will be registered only when it receives ZIL
@@ -207,11 +250,15 @@ export class ZilliqaService {
       nonce: 0
     }
 
-    // don't store private key
-    return {privateKey: key.toString('hex')}
+    return key.toString('hex')
   }
 
-  importWallet(privateKey) {
+  /**
+   * import an account wallet from server using a private key
+   * @param {string} privateKey - the private key of the account being imported
+   * @returns {Promise} Promise object containing boolean - if imported successfully or not
+   */
+  importWallet(privateKey): Promise<any> {
     var deferred = new $.Deferred()
 
     if (!!(privateKey.match(/[0-9a-fA-F]{64}/)) == false) {
@@ -260,34 +307,52 @@ export class ZilliqaService {
     return deferred.promise()
   }
 
-  resetWallet() {
+  /**
+   * destroys and resets the userWallet data
+   */
+  resetWallet(): void {
     this.userWallet = new Wallet()
   }
 
-  intToByteArray(x, sizeOfInt)
+  /**
+   * convert number to array representing the padded binary form
+   * @param {number} val - number to be converted
+   * @param {number} paddedSize - the size till which val should be padded
+   * @returns {Array} array containing the 0-padded binary form (from left to right)
+   */
+  intToByteArray(val, paddedSize): Array<number>
   {
-    var bytes = []
+    var arr = []
 
-    let binaryX = x.toString(16)
-    let binaryRepX = []
+    let binaryVal = val.toString(16)
+    let binaryRep = []
 
     var i
-    for(i = 0 ; i < binaryX.length ; i++) {
-      binaryRepX[i] = parseInt(binaryX[i])
+    for(i = 0 ; i < binaryVal.length ; i++) {
+      binaryRep[i] = parseInt(binaryVal[i])
     }
 
-    for(i = 0 ; i < (sizeOfInt-binaryX.length) ; i++){
-      bytes.push(0)
+    for(i = 0 ; i < (paddedSize - binaryVal.length) ; i++){
+      arr.push(0)
     }
 
-    for(i = 0 ; i < binaryX.length ; i++) {
-      bytes.push(binaryRepX[i])
+    for(i = 0 ; i < binaryVal.length ; i++) {
+      arr.push(binaryRep[i])
     }
 
-    return bytes;
+    return arr
   }
 
-  sendPayment(payment) {
+  /**
+   * create a new transaction
+   * @param {Object} payment - the details of the transaction
+   * @param {string} payment.to - address to which transaction is sent to
+   * @param {number} payment.amount - number of zils sent
+   * @param {number} payment.gasPrice - gas price for this transaction
+   * @param {number} payment.gasLimit - gas limit for this transaction
+   * @returns {Promise} Promise object containing the newly created transaction id
+   */
+  sendPayment(payment: any): Promise<any> {
     // checkValid(payment.address)
     var deferred = new $.Deferred()
     let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
@@ -328,61 +393,5 @@ export class ZilliqaService {
     })
 
     return deferred.promise()
-  }
-
-  getTxHistory() {
-    var deferred = new $.Deferred()
-
-    // this.node.getTransactionHistory({address: this.userWallet.address}, function(err, data) {
-    //   if (err) deferred.reject(err)
-
-      // deferred.resolve(data.result)
-      deferred.resolve(
-        [{
-          id: '0x123',
-          to: '0x456',
-          from: '0x789',
-          amount: 59
-        },
-        {
-          id: '0xeee',
-          to: '0xfff',
-          from: '0xddd',
-          amount: 100
-        },
-        {
-          id: '0x111212312312312123132fgrebgr34',
-          to: '0x111212312312312123132234245433',
-          from: '0x2768r73gireh32r8y734g9ure3y28rih',
-          amount: 18
-        },
-        {
-          id: '0x2ihu3gr398gi3g234g90243gijubeh39fio',
-          to: '0x2j49f84jg983jg9384jg938gh398g398hg394gh3948g3',
-          from: '0x892j4g398jg34g2398j432f983o9gj398gj3gh4g8',
-          amount: 32
-        }]
-      )
-    // })
-
-    return deferred.promise()
-  }
-
-  /**
-   * Handle Http operation that failed - let the app continue
-   * @param operation - name of the operation that failed
-   * @param result - optional value to return as the observable result
-   */
-  private handleError<T> (operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-
-      console.error(error); // log to console
-
-      // TODO: better job of transforming error for user consumption
-      // this.log(`${operation} failed: ${error.message}`);
-
-      // Let the app keep running by returning an empty result.
-      return of(result as T);
-    };
   }
 }

@@ -71,7 +71,7 @@ export class CreateComponent implements OnInit {
   }
 
   generateWallet() {
-    this.generatedPrivateKey = this.zilliqaService.createWallet().privateKey
+    this.generatedPrivateKey = this.zilliqaService.createWallet()
     this.wallet = this.zilliqaService.getWallet()
     this.setState(2);
   }

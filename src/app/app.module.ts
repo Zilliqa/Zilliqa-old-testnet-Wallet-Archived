@@ -25,6 +25,7 @@ import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
 import { ZilliqaService } from './zilliqa.service';
 import { AuthGuardService } from './auth-guard.service';
+import { NetworkService } from './network.service';
 import { AppRoutingModule } from './app-routing.module';
 
 
@@ -46,7 +47,8 @@ import { AppRoutingModule } from './app-routing.module';
   ],
   providers: [
     ZilliqaService,
-    AuthGuardService
+    AuthGuardService,
+    NetworkService
   ],
   bootstrap: [AppComponent]
 })
