@@ -315,29 +315,29 @@ export class ZilliqaService {
   }
 
   /**
-   * convert number to array representing the padded binary form
+   * convert number to array representing the padded hex form
    * @param {number} val - number to be converted
    * @param {number} paddedSize - the size till which val should be padded
-   * @returns {Array} array containing the 0-padded binary form (from left to right)
+   * @returns {Array} array containing the 0-padded hex form (from left to right)
    */
-  intToByteArray(val, paddedSize): Array<number>
+  intToByteArray(val, paddedSize): Array<string>
   {
     var arr = []
 
-    let binaryVal = val.toString(16)
-    let binaryRep = []
+    let hexVal = val.toString(16)
+    let hexRep = []
 
     var i
-    for(i = 0 ; i < binaryVal.length ; i++) {
-      binaryRep[i] = parseInt(binaryVal[i])
+    for(i = 0 ; i < hexVal.length ; i++) {
+      hexRep[i] = hexVal[i].toString()
     }
 
-    for(i = 0 ; i < (paddedSize - binaryVal.length) ; i++){
-      arr.push(0)
+    for(i = 0 ; i < (paddedSize - hexVal.length) ; i++){
+      arr.push('0')
     }
 
-    for(i = 0 ; i < binaryVal.length ; i++) {
-      arr.push(binaryRep[i])
+    for(i = 0 ; i < hexVal.length ; i++) {
+      arr.push(hexRep[i])
     }
 
     return arr

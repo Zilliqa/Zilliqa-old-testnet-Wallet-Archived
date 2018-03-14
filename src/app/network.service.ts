@@ -51,9 +51,10 @@ export class NetworkService {
     this.connectionAttempts = 0
     this.nodeStatus = 'Connected to the network.'
 
+    // remove the green status in 3 seconds
     setTimeout(() => {this.networkBarVisible = false}, 3000)
 
-    // checks the node connection status every 15 seconds
+    // check the node connection status 15 seconds later
     setTimeout(() => {this.checkConnection()}, 15000)
   }
 

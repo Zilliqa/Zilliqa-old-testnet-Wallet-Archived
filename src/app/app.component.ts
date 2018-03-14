@@ -22,7 +22,6 @@ import { NetworkService } from './network.service';
 export class AppComponent {
 
   data: object
-  timers: any
 
   constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
     this.data = {
