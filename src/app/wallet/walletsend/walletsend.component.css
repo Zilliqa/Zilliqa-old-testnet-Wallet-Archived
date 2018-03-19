@@ -1,1 +1,7 @@
 @import '../wallet.component.css';
+
+.alert-warning {
+    background-color: transparent;
+    border-color: #bdbd00;
+    color: #6FBDBA;
+}

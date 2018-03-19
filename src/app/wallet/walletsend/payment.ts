@@ -9,29 +9,9 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-
-import { ZilliqaService } from '../zilliqa.service';
-
-
-@Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
-})
-export class HomeComponent implements OnInit {
-
-  constructor(private router: Router, private zilliqaService: ZilliqaService) {
-    // clear existing wallet if any
-    this.zilliqaService.resetWallet()
-  }
-
-  ngOnInit() {
-
-  }
-
-  createWallet() {
-    this.router.navigate(['/', 'create'])
-  }
+export class Payment {
+	amount: number
+	address: string
+	gasPrice: number
+	gasLimit: number
 }

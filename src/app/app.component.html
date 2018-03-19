@@ -5,16 +5,16 @@
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <a class="navbar-brand" routerLink="/home"><img src="../assets/images/logo.png" class="navbar-logo mr-2" />Zilliqa</a>
+  <a class="navbar-brand" routerLink="/home"><img src="../assets/images/logo.png" class="navbar-logo mr-2" />Zilliqa Wallet</a>
 
   <div class="navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto ml-auto">
-      <li class="nav-item active">
-        <a class="nav-link active" href="#" routerLink="wallet/base">Wallet</a>
+      <li class="nav-item">
+        <a class="nav-link" href="https://localhost:4100" target="blank">Explorer</a>
       </li>
-      <!-- <li class="nav-item">
-        <a class="nav-link help-link" href="#" routerLink="home">Help</a>
-      </li> -->
+      <li *ngIf="zilliqaService.getWallet().address != undefined">
+        <a class="nav-link" href="#" routerLink="home">Logout</a>
+      </li>
     </ul>
 
     <ul class="navbar-stats navbar-nav">
@@ -69,7 +69,7 @@
   </div>
 </nav>
 
-<div class="container-fluid">
+<div class="container-fluid homeBody" [ngStyle]="{'min-height': containerHeight + 'px'}">
   <router-outlet></router-outlet>
 </div>
 

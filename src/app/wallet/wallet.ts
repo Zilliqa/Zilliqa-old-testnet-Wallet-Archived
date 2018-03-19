@@ -10,8 +10,8 @@
 
 
 export class Wallet {
-	address: string;
-	privateKey: string;
-	balance: number;
-	nonce: number;
+	address: string
+	privateKey: string
+	balance: number
+	nonce: number
 }

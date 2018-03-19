@@ -71,10 +71,16 @@ export class ZilliqaService {
     var that = this;
 
     that.node.getNetworkId(function(err, data1) {
-      if (err || !data1.result) deferred.reject(err);
+      if (err || !data1.result) {
+        deferred.reject(err)
+        return
+      }
 
       that.node.getLatestDsBlock(function(err, data2) {
-        if (err || !data2.result) deferred.reject(err);
+        if (err || !data2.result) {
+          deferred.reject(err)
+          return
+        }
 
         deferred.resolve({
           networkId: data1.result,
@@ -154,6 +160,12 @@ export class ZilliqaService {
     // todo - add more checks
     if (this.walletData.encryptedWalletFile == null) 
       return false
+    
+    try {
+      let parsed = JSON.parse(this.walletData.encryptedWalletFile)
+    } catch (e) {
+      return false
+    }
 
     return true
   }
@@ -315,29 +327,29 @@ export class ZilliqaService {
   }
 
   /**
-   * convert number to array representing the padded binary form
+   * convert number to array representing the padded hex form
    * @param {number} val - number to be converted
    * @param {number} paddedSize - the size till which val should be padded
-   * @returns {Array} array containing the 0-padded binary form (from left to right)
+   * @returns {Array} array containing the 0-padded hex form (from left to right)
    */
-  intToByteArray(val, paddedSize): Array<number>
+  intToByteArray(val, paddedSize): Array<string>
   {
     var arr = []
 
-    let binaryVal = val.toString(16)
-    let binaryRep = []
+    let hexVal = val.toString(16)
+    let hexRep = []
 
     var i
-    for(i = 0 ; i < binaryVal.length ; i++) {
-      binaryRep[i] = parseInt(binaryVal[i])
+    for(i = 0 ; i < hexVal.length ; i++) {
+      hexRep[i] = hexVal[i].toString()
     }
 
-    for(i = 0 ; i < (paddedSize - binaryVal.length) ; i++){
-      arr.push(0)
+    for(i = 0 ; i < (paddedSize - hexVal.length) ; i++){
+      arr.push('0')
     }
 
-    for(i = 0 ; i < binaryVal.length ; i++) {
-      arr.push(binaryRep[i])
+    for(i = 0 ; i < hexVal.length ; i++) {
+      arr.push(hexRep[i])
     }
 
     return arr
@@ -353,7 +365,6 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing the newly created transaction id
    */
   sendPayment(payment: any): Promise<any> {
-    // checkValid(payment.address)
     var deferred = new $.Deferred()
     let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
 
@@ -386,6 +397,7 @@ export class ZilliqaService {
 
     this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) deferred.reject(err)
+
 
       deferred.resolve({
         txId: data.result

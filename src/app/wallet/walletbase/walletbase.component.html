@@ -1,10 +1,7 @@
 <div class="row">
-  <div class="col zblue">
-		<a class="btn btn-large btn-block text-white" routerLink="/wallet/send">Send</a>
-  </div>
-  <!-- <div class="col zblue">
-  	<a class="btn btn-large btn-block text-white" routerLink="/wallet/history">History</a>
-  </div> -->
+	<div class="col zblue">
+		<a class="btn btn-large btn-block text-white" routerLink="/wallet/send"><h3 class="noMargin">Send</h3></a>
+	</div>
 </div>
 
 <div class="row mt-5">
@@ -29,12 +26,12 @@
 </div>
 <div class="row mt-2">
 	<div class="col text-center">
-		<h4>Private Key</h4>
+		<h4>Private Key&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn zil-btn" (click)="revealPrivateKey()">{{revealBtn}}</a></h4>
 	</div>
 </div>
 <div class="row">
 	<div class="col text-center">
-		<p><span>{{ privateKeyDisplay }}</span>&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn zblue text-white" (click)="revealPrivateKey()">Reveal</a></p>
+		<p><span>{{ privateKeyDisplay }}</span></p>
 	</div>
 </div>
 <div class="row mt-2">
@@ -44,8 +41,7 @@
 			type="password" 
 			placeholder="Enter passphrase (min 8 characters)"
 			style="min-width: 300px;" >&nbsp;&nbsp;
-		<button class="btn btn-large zblue text-white" 
-				style="cursor:pointer;" 
+		<button class="btn btn-large zil-btn cursorHand" 
 				[disabled]="!validPassphrase()" 
 				(click)="downloadWallet()">Download
 		</button>

@@ -9,10 +9,11 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core'
 
 import { Wallet } from '../wallet'
-import { ZilliqaService } from '../../zilliqa.service';
+import { Payment } from './payment'
+import { ZilliqaService } from '../../zilliqa.service'
 
 
 @Component({
@@ -30,13 +31,17 @@ export class WalletsendComponent implements OnInit {
   state: number
   pendingTxId: string
   wallet: Wallet
-
-	@Input() payment = {}
+  payment: Payment
 
   constructor(private zilliqaService: ZilliqaService) { 
     this.state = 0
     this.pendingTxId = null
     this.wallet = new Wallet()
+    this.payment = new Payment()
+  }
+
+  ngOnInit() {
+    this.wallet = this.zilliqaService.getWallet()
     this.payment = {
       amount: 0,
       address: '',
@@ -45,12 +50,8 @@ export class WalletsendComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
-    this.wallet = this.zilliqaService.getWallet()
-  }
-
   ngOnDestroy() {
-    this.payment = {}
+    this.payment = new Payment()
     this.pendingTxId = null
     this.setState(0)
   }
@@ -59,11 +60,21 @@ export class WalletsendComponent implements OnInit {
     this.state = newState
   }
 
+  invalidAddress() {
+    // show error if address not valid and some input already entered by user
+    return (this.payment.address.length > 0 && !(this.payment.address.match(/^[0-9a-fA-F]{40}$/)))
+  }
+
+  invalidAmount() {
+    return false//(this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
+  }
+
+  invalidPayment() {
+    // disable button - can't reuse invalidAddress as 0 length also not allowed
+    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || this.invalidAmount())
+  }
+
   onSend() {
-    // if (this.payment.amount > this.wallet.balance) {
-    //   alert('Amount must be within wallet balance.')
-    //   return
-    // }
     let that = this
     this.zilliqaService.sendPayment(this.payment).then(function(data) {
       that.pendingTxId = data.txId

@@ -43,7 +43,9 @@ export class CreateComponent implements OnInit {
   
   @Input() importPrivateKey = ''
 
-  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) { 
+  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
+    // clear existing wallet if any
+    this.zilliqaService.resetWallet()
     this.state = 0;
     this.wallet = new Wallet()
     this.loading = false

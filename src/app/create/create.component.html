@@ -8,8 +8,8 @@
 <div *ngIf="state == 0">
 	<div class="row mt-5">
 		<div class="col text-center">
-			<a class="btn btn-large zblue text-white" (click)="setState(1)"><i class="fa fa-plus"></i>&nbsp;Create New Wallet</a>
-			<a class="btn btn-large zblue text-white" (click)="setState(3)"><i class="fa fa-upload"></i>&nbsp;Access Your Wallet</a>
+			<a class="btn btn-large zil-btn" (click)="setState(1)"><i class="fa fa-plus"></i>&nbsp;Create New Wallet</a>
+			<a class="btn btn-large zil-btn" (click)="setState(3)"><i class="fa fa-upload"></i>&nbsp;Access Your Wallet</a>
 		</div>
 	</div>
 </div>
@@ -20,7 +20,7 @@
 <div *ngIf="state == 1">
 	<div class="row mt-5">
 		<div class="col text-center">
-			<a class="btn text-white zblue" (click)="generateWallet()">Click to Generate Address</a>
+			<a class="btn zil-btn" (click)="generateWallet()">Click to Generate Address</a>
 		</div>
 	</div>
 </div>
@@ -41,7 +41,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" routerLink="/wallet/base">Continue</a>
+			<a class="btn zil-btn" routerLink="/wallet/base">Continue</a>
 		</div>
 	</div>
 </div>
@@ -51,8 +51,8 @@
 <div *ngIf="state == 3">
 	<div class="row mt-5">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="setState(4)">Import JSON</a>
-			<a class="btn zblue text-white" (click)="setState(5)">Enter Private Key</a>
+			<a class="btn zil-btn" (click)="setState(4)">Import JSON</a>
+			<a class="btn zil-btn" (click)="setState(5)">Enter Private Key</a>
 		</div>
 	</div>
 </div>
@@ -79,7 +79,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="decryptWallet()">Decrypt</a>
+			<a class="btn zil-btn" (click)="decryptWallet()">Decrypt</a>
 		</div>
 	</div>
 	<div *ngIf="loading == true" class="loadingOverlay"></div>
@@ -99,7 +99,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="importWallet()">Import</a>
+			<a class="btn zil-btn" (click)="importWallet()">Import</a>
 		</div>
 	</div>
 </div>
@@ -116,7 +116,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" routerLink="/wallet/base">Continue</a>
+			<a class="btn zil-btn" routerLink="/wallet/base">Continue</a>
 		</div>
 	</div>
 </div>
@@ -132,7 +132,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="setState(0)">Back</a>
+			<a class="btn zil-btn" (click)="setState(0)">Back</a>
 		</div>
 	</div>
 </div>
@@ -148,7 +148,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="setState(0)">Back</a>
+			<a class="btn zil-btn" (click)="setState(0)">Back</a>
 		</div>
 	</div>
 </div>
@@ -164,7 +164,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="setState(0)">Back</a>
+			<a class="btn zil-btn" (click)="setState(0)">Back</a>
 		</div>
 	</div>
 </div>
@@ -179,7 +179,7 @@
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zblue text-white" (click)="setState(0)">Back</a>
+			<a class="btn zil-btn" (click)="setState(0)">Back</a>
 		</div>
 	</div>
 </div>
