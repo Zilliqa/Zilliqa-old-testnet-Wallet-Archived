@@ -24,6 +24,7 @@ import { ZilliqaService } from '../../zilliqa.service';
 export class WalletbaseComponent implements OnInit {
 
   privateKeyDisplay: string
+  revealBtn: string
   walletEncryptPassphrase: string
   wallet: Wallet
   loading: boolean
@@ -31,6 +32,7 @@ export class WalletbaseComponent implements OnInit {
   constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
     this.wallet = new Wallet()
     this.privateKeyDisplay = '**************************'
+    this.revealBtn = 'Show'
     this.walletEncryptPassphrase = ''
     this.loading = false
   }
@@ -40,11 +42,14 @@ export class WalletbaseComponent implements OnInit {
   }
 
   revealPrivateKey() {
-    if (this.privateKeyDisplay == undefined || this.privateKeyDisplay.length == 0 || this.privateKeyDisplay[0] != '*')
+    if (this.privateKeyDisplay == undefined || this.privateKeyDisplay.length == 0 || this.privateKeyDisplay[0] != '*') {
       // if privateKey is uninitialized or empty or doesn't begin with *, hide it
       this.privateKeyDisplay = '**************************'
-    else
+      this.revealBtn = 'Show'
+    } else {
       this.privateKeyDisplay = this.wallet.privateKey
+      this.revealBtn = 'Hide'
+    }
   }
 
   validPassphrase() {

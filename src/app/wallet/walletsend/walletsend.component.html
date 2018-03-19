@@ -1,22 +1,38 @@
 <div class="row">
-  <div class="col zblue">
-		<a class="btn btn-large btn-block text-white" routerLink="/wallet/base">Account</a>
-  </div>
-  <!-- <div class="col zblue">
-  	<a class="btn btn-large btn-block text-white" routerLink="/wallet/history">History</a>
-  </div> -->
+	<div class="col zblue">
+		<a class="btn btn-large btn-block text-white" routerLink="/wallet/base"><h3 class="noMargin">Account</h3></a>
+	</div>
+	<!-- <div class="col zblue">
+  		<a class="btn btn-large btn-block text-white" routerLink="/wallet/history">History</a>
+	</div> -->
 </div>
 
 <!-- send transaction flow #1 -->
 <div *ngIf="state == 0">
 	<div class="row mt-5">
-		<div class="col">
+		<div class="col ml-auto mr-auto text-center">
 			<h4>Send Tokens</h4>
 		</div>
 	</div>
 
+	<div class="row mt-2 error-address" *ngIf="invalidAddress()">
+		<div class="col-md-6 ml-auto mr-auto">
+			<div class="alert alert-warning" role="alert">
+				<strong>Error!</strong> The address must be a hexadecimal string of 40 characters.
+			</div>
+		</div>
+	</div>
+
+	<div class="row mt-2 error-amount" *ngIf="invalidAmount()">
+		<div class="col-md-6 ml-auto mr-auto">
+			<div class="alert alert-warning" role="alert">
+				<strong>Error!</strong> The amount must be positive and less than your wallet balance.
+			</div>
+		</div>
+	</div>
+
 	<div class="row mt-2">
-		<div class="col-md-4">
+		<div class="col-md-6 ml-auto mr-auto">
 			<div class="input-group input-group-md">
 			  <span class="input-group-addon">Address: </span>
 			  <input [(ngModel)]="payment.address" type="text" class="form-control" placeholder="Address">
@@ -24,7 +40,7 @@
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="col-md-4">
+		<div class="col-md-6 ml-auto mr-auto">
 			<div class="input-group input-group-md">
 		  	<span class="input-group-addon">Amount:     </span>
 		  	<input [(ngModel)]="payment.amount" type="number" class="form-control" placeholder="Amount">
@@ -32,7 +48,7 @@
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="col-md-4">
+		<div class="col-md-6 ml-auto mr-auto">
 			<div class="input-group input-group-md">
 		  	<span class="input-group-addon">Gas Price:     </span>
 		  	<input [(ngModel)]="payment.gasPrice" type="number" class="form-control" placeholder="Gas Price">
@@ -40,7 +56,7 @@
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="col-md-4">
+		<div class="col-md-6 ml-auto mr-auto">
 			<div class="input-group input-group-md">
 		  	<span class="input-group-addon">Gas Limit:     </span>
 		  	<input [(ngModel)]="payment.gasLimit" type="number" class="form-control" placeholder="Gas Limit">
@@ -48,14 +64,14 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col">
+		<div class="col-md-6 ml-auto mr-auto">
 			<p>(current balance: {{wallet.balance}} ZIL)</p>
 		</div>
 	</div>
 
-	<div class="row mt-5">
+	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn btn-success text-white" (click)="onSend()">Send</a>
+			<button class="btn btn-large zil-btn cursorHand" [disabled]="(invalidPayment())" (click)="onSend()">Send</button>
 		</div>
 	</div>
 </div>
@@ -63,25 +79,25 @@
 <!-- send transaction flow #2 -->
 <div *ngIf="state == 1">
 	<div class="row mt-5">
-		<div class="col">
+		<div class="col ml-auto mr-auto text-center">
 			<h4>Pending Transaction ID : {{pendingTxId}}</h4>
 		</div>
 	</div>
 
 	<div class="row mt-2">
-		<div class="col">
+		<div class="col-md-6 ml-auto mr-auto">
 		  <span class="input-group-addon">Address: {{payment.address}}</span>
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="col">
+		<div class="col-md-6 ml-auto mr-auto">
 		  <span class="input-group-addon">Amount: {{payment.amount}}</span>
 		</div>
 	</div>
 
 	<div class="row mt-5">
 		<div class="col text-center">
-			<a class="btn btn-success text-white" routerLink="/wallet">Continue</a>
+			<a class="btn zil-btn" routerLink="/wallet">Continue</a>
 		</div>
 	</div>
 </div>

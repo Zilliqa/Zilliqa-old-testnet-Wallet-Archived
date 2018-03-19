@@ -10,6 +10,7 @@
 
 
 import { Component } from '@angular/core';
+import { NgStyle } from '@angular/common';
 
 import { ZilliqaService } from './zilliqa.service';
 import { NetworkService } from './network.service';
@@ -22,23 +23,34 @@ import { NetworkService } from './network.service';
 export class AppComponent {
 
   data: object
+  containerHeight: number
 
   constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
     this.data = {
       latestDSBlock: '',
       networkId: ''
     }
+    this.containerHeight = window.screen.height - 200
   }
 
   ngOnInit() {
+    this.loadNavData()
+
+    // load nav data every 15 seconds
+    setInterval(() => {
+      this.loadNavData()
+    }, 15000)
+
+    // checks the node connection status every 15 seconds
+    this.networkService.checkConnection()
+  }
+
+  loadNavData() {
     let that = this
 
     // fetch initial stats
     this.zilliqaService.getInitData().then(function(data) {
       that.data = data
     })
-
-    // checks the node connection status every 15 seconds
-    this.networkService.checkConnection()
   }
 }
