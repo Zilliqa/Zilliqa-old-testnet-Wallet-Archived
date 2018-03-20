@@ -37,14 +37,22 @@
 <div class="row mt-2">
 	<div class="col text-center">
 		<h4>Download JSON Keyfile (Encrypted with Passphrase):</h4> 
-		<input [(ngModel)]="walletEncryptPassphrase" 
-			type="password" 
-			placeholder="Enter passphrase (min 8 characters)"
-			style="min-width: 300px;" >&nbsp;&nbsp;
-		<button class="btn btn-large zil-btn cursorHand" 
-				[disabled]="!validPassphrase()" 
-				(click)="downloadWallet()">Download
-		</button>
-		<div *ngIf="loading == true" class="loadingOverlay"></div>
 	</div>
+</div>
+<div class="row mt-1">
+	<div class="col text-center">
+		<span class="input">
+			<input [(ngModel)]="walletEncryptPassphrase" type="password" id="input-zilencrypt" class="input__field input__field--madoka" placeholder="Enter passphrase (min 8 characters)">
+			<label class="input__label input__label--madoka" for="input-zilencrypt">
+				<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+					<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+				</svg>
+			</label>
+		</span>
+		<button class="btn btn-large zil-btn cursorHand align-bottom" 
+			[disabled]="!validPassphrase()" 
+			(click)="downloadWallet()">Download
+		</button>
+	</div>
+	<div *ngIf="loading == true" class="loadingOverlay"></div>
 </div>

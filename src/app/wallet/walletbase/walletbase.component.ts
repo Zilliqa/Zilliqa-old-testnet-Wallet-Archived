@@ -31,7 +31,7 @@ export class WalletbaseComponent implements OnInit {
 
   constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
     this.wallet = new Wallet()
-    this.privateKeyDisplay = '**************************'
+    this.privateKeyDisplay = '****************************************************************'
     this.revealBtn = 'Show'
     this.walletEncryptPassphrase = ''
     this.loading = false
@@ -44,7 +44,7 @@ export class WalletbaseComponent implements OnInit {
   revealPrivateKey() {
     if (this.privateKeyDisplay == undefined || this.privateKeyDisplay.length == 0 || this.privateKeyDisplay[0] != '*') {
       // if privateKey is uninitialized or empty or doesn't begin with *, hide it
-      this.privateKeyDisplay = '**************************'
+      this.privateKeyDisplay = '****************************************************************'
       this.revealBtn = 'Show'
     } else {
       this.privateKeyDisplay = this.wallet.privateKey
@@ -81,5 +81,6 @@ export class WalletbaseComponent implements OnInit {
     document.body.removeChild(element)
 
     this.loading = false
+    this.walletEncryptPassphrase = ''
   }
 }

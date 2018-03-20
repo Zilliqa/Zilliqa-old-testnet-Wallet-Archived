@@ -63,18 +63,26 @@
 <!-- import JSON option -->
 <div *ngIf="state == 4">
 	<div class="row mt-5">
-		<div class="col text-center">
-			<label for="file">Upload wallet file (.json)</label>
-			<input type="file" 
-					id="walletFile" 
-					(change)="selectWallet($event.target.files)" />
+		<div class="col-md-2 ml-auto">
+			<span class="btn zil-btn btn-file cursorHand">Upload wallet file (.json)
+				<input type="file" id="walletFile" (change)="selectWallet($event.target.files)" />
+			</span>
+		</div>
+		<div class="col-md-3 mr-auto">
+			<input type="text" class="form-control zil-btn" disabled="" [(ngModel)]="walletFilename" readonly="">
 		</div>
 	</div>
-	<div class="row mt-2">
+	<div class="row mt-5">
 		<div class="col text-center">
-			<label>Enter passphrase to decrypt JSON wallet:
-				<input [(ngModel)]="walletDecryptKey" type="password">
-			</label>
+			<label class="align-bottom">Enter passphrase to decrypt JSON wallet: </label>
+			<span class="input">
+				<input [(ngModel)]="walletDecryptKey" type="password" id="input-walletdecrypt" class="input__field input__field--madoka">
+				<label class="input__label input__label--madoka" for="input-walletdecrypt">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
 	<div class="row mt-2">
@@ -90,16 +98,31 @@
 <!-- import wallet flow #3 -->
 <!-- enter passphrase option -->
 <div *ngIf="state == 5">
+
+	<div class="row mt-5" *ngIf="invalidPrivateKey()">
+		<div class="col-md-6 ml-auto mr-auto">
+			<div class="alert alert-warning" role="alert">
+				<strong>Error!</strong> The private key must be a hexadecimal string of 64 characters.
+			</div>
+		</div>
+	</div>
+
 	<div class="row mt-5">
 		<div class="col text-center">
-			<label>Enter your private key:
-				<input [(ngModel)]="importPrivateKey" placeholder="enter private key here">
-			</label>
+			<label class="align-bottom">Enter private key here: </label>
+			<span class="input">
+				<input [(ngModel)]="importPrivateKey" type="text" spellcheck="false" id="input-pk" class="input__field input__field--madoka">
+				<label class="input__label input__label--madoka" for="input-pk">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
 	<div class="row mt-2">
 		<div class="col text-center">
-			<a class="btn zil-btn" (click)="importWallet()">Import</a>
+			<button class="btn zil-btn cursorHand" (click)="importWallet()" [disabled]="invalidImportBtn()">Import</button>
 		</div>
 	</div>
 </div>

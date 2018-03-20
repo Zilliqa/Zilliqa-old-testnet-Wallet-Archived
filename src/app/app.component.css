@@ -16,17 +16,16 @@
   color: #73e6e5 !important;
   border: 1px solid #49c1bf;
 }
-.zblue-font {
-	color: #49c1bf;
-}
-.zblue-font-dark {
-  color: #6FBDBA;
-}
 .light-gray {
 	background-color: #dedede;
 }
 a {
 	cursor: pointer;
+}
+.input-group-addon {
+  background-color: transparent;
+  border: 1px solid #49c1bf;
+  color: #49c1bf;
 }
 .navbar-logo {
 	height: 50px;
@@ -67,6 +66,11 @@ table a{
 }
 .noMargin {
   margin-bottom: 0;
+}
+.alert-warning {
+    background-color: transparent;
+    border-color: #bdbd00;
+    color: #6FBDBA;
 }
 
 /* Absolute Center Spinner */
