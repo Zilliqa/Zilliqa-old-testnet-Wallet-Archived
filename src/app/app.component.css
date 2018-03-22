@@ -72,6 +72,14 @@ table a{
     border-color: #bdbd00;
     color: #6FBDBA;
 }
+.footer-row {
+  justify-content: space-between; 
+  font-size: 22px;
+}
+.footer-row a {
+  text-decoration: none;
+  color: black;
+}
 
 /* Absolute Center Spinner */
 .loadingOverlay {
