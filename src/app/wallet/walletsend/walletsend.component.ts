@@ -76,9 +76,12 @@ export class WalletsendComponent implements OnInit {
 
   onSend() {
     let that = this
-    this.zilliqaService.sendPayment(this.payment).then(function(data) {
+    this.zilliqaService.sendPayment(this.payment).then((data) => {
       that.pendingTxId = data.txId
       that.setState(1)
+      that.zilliqaService.refreshBalance().then((data) => {})
+    }, (err) => {
+      that.setState(3)
     })
   }
 

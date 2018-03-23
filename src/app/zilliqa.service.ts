@@ -73,21 +73,19 @@ export class ZilliqaService {
     that.node.getNetworkId(function(err, data1) {
       if (err || !data1.result) {
         deferred.reject(err)
-        return
+      } else {
+        that.node.getLatestDsBlock(function(err, data2) {
+          if (err || !data2.result) {
+            deferred.reject(err)
+          } else {
+            deferred.resolve({
+              networkId: data1.result,
+              latestDSBlock: data2.result.header.blockNum
+            })
+          }
+        })
       }
-
-      that.node.getLatestDsBlock(function(err, data2) {
-        if (err || !data2.result) {
-          deferred.reject(err)
-          return
-        }
-
-        deferred.resolve({
-          networkId: data1.result,
-          latestDSBlock: data2.result.header.blockNum
-        });
-      });
-    });
+    })
 
     return deferred.promise();
   }
@@ -212,21 +210,30 @@ export class ZilliqaService {
   }
 
   /**
-   * get the account details an account using its public address
+   * get the account details of an account using its public address
    * @param {string} address - the public address of the account
    * @returns {Promise} Promise object containing address, balance and nonce of the account
    */
-  getBalance(address): Promise<any> {
+  refreshBalance(): Promise<any> {
     var deferred = new $.Deferred()
 
-    this.node.getBalance({address: address}, function(err, data) {
-      if (err) deferred.reject(err)
+    let that = this
+    this.node.getBalance({address: this.userWallet.address}, function(err, data) {
+      if (err || data.error) {
+        deferred.reject({error: err})
+      } else {
+        let newUserWallet = {
+          address: that.userWallet.address,
+          balance: data.result.balance,
+          nonce: data.result.nonce,
+          privateKey: that.userWallet.privateKey
+        }
+        that.userWallet = newUserWallet
 
-      deferred.resolve({
-        address: address,
-        balance: data.result.balance,
-        nonce: data.result.nonce
-      })
+        deferred.resolve({
+          result: true
+        })
+      }
     })
 
     return deferred.promise()
@@ -292,19 +299,18 @@ export class ZilliqaService {
         this.node.getBalance({address: addr}, function(err, data) {
           if (err || data.error) {
             deferred.reject({error: err})
-            return deferred.promise()
-          }
+          } else {
+            that.userWallet = {
+              address: addr,
+              balance: data.result.balance,
+              nonce: data.result.nonce,
+              privateKey: privateKey.toString('hex')
+            }
 
-          that.userWallet = {
-            address: addr,
-            balance: data.result.balance,
-            nonce: data.result.nonce,
-            privateKey: privateKey.toString('hex')
+            deferred.resolve({
+              result: true
+            })
           }
-
-          deferred.resolve({
-            result: true
-          })
         })
       } else {
         deferred.reject({
@@ -396,12 +402,13 @@ export class ZilliqaService {
     txn['signature'] = r + s
 
     this.node.createTransaction(txn, function(err, data) {
-      if (err || data.error) deferred.reject(err)
-
-
-      deferred.resolve({
-        txId: data.result
-      })
+      if (err || data.error) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          txId: data.result
+        })
+      }
     })
 
     return deferred.promise()

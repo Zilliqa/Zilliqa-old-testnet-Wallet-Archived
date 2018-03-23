@@ -15,7 +15,7 @@
 		</div>
 	</div>
 
-	<div class="row mt-2 error-address" *ngIf="invalidAddress()">
+	<div class="row mt-2" *ngIf="invalidAddress()">
 		<div class="col-md-6 ml-auto mr-auto">
 			<div class="alert alert-warning" role="alert">
 				<strong>Error!</strong> The address must be a hexadecimal string of 40 characters.
@@ -23,7 +23,7 @@
 		</div>
 	</div>
 
-	<div class="row mt-2 error-amount" *ngIf="invalidAmount()">
+	<div class="row mt-2" *ngIf="invalidAmount()">
 		<div class="col-md-6 ml-auto mr-auto">
 			<div class="alert alert-warning" role="alert">
 				<strong>Error!</strong> The amount must be positive and less than your wallet balance.
@@ -32,46 +32,66 @@
 	</div>
 
 	<div class="row mt-2">
-		<div class="col-md-6 ml-auto mr-auto">
-			<div class="input-group input-group-md">
-			  <span class="input-group-addon">Address: </span>
-			  <input [(ngModel)]="payment.address" type="text" class="form-control" placeholder="Address">
-			</div>
+		<div class="col text-center">
+			<label class="align-bottom">Address: </label>
+			<span class="input">
+				<input [(ngModel)]="payment.address" type="text" id="input-ziladdress" class="input__field input__field--madoka" spellcheck="false">
+				<label class="input__label input__label--madoka" for="input-ziladdress">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
-	<div class="row mt-2">
-		<div class="col-md-6 ml-auto mr-auto">
-			<div class="input-group input-group-md">
-		  	<span class="input-group-addon">Amount:     </span>
-		  	<input [(ngModel)]="payment.amount" type="number" class="form-control" placeholder="Amount">
-			</div>
+	<div class="row mt-3">
+		<div class="col text-center">
+			<label class="align-bottom">Amount: </label>
+			<span class="input">
+				<input [(ngModel)]="payment.amount" type="number" id="input-zilamount" class="input__field input__field--madoka">
+				<label class="input__label input__label--madoka" for="input-zilamount">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
-	<div class="row mt-2">
-		<div class="col-md-6 ml-auto mr-auto">
-			<div class="input-group input-group-md">
-		  	<span class="input-group-addon">Gas Price:     </span>
-		  	<input [(ngModel)]="payment.gasPrice" type="number" class="form-control" placeholder="Gas Price">
-			</div>
+	<div class="row mt-3">
+		<div class="col text-center">
+			<label class="align-bottom">Gas Price: </label>
+			<span class="input">
+				<input [(ngModel)]="payment.gasPrice" type="number" id="input-zilgasprice" class="input__field input__field--madoka">
+				<label class="input__label input__label--madoka" for="input-zilgasprice">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
-	<div class="row mt-2">
-		<div class="col-md-6 ml-auto mr-auto">
-			<div class="input-group input-group-md">
-		  	<span class="input-group-addon">Gas Limit:     </span>
-		  	<input [(ngModel)]="payment.gasLimit" type="number" class="form-control" placeholder="Gas Limit">
-			</div>
+	<div class="row mt-3">
+		<div class="col text-center">
+			<label class="align-bottom">Gas Limit: </label>
+			<span class="input">
+				<input [(ngModel)]="payment.gasLimit" type="number" id="input-zilgaslimit" class="input__field input__field--madoka">
+				<label class="input__label input__label--madoka" for="input-zilgaslimit">
+					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+					</svg>
+				</label>
+			</span>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-md-6 ml-auto mr-auto">
+	<div class="row mt-1">
+		<div class="col-md-6 ml-auto mr-auto text-center">
 			<p>(current balance: {{wallet.balance}} ZIL)</p>
 		</div>
 	</div>
 
 	<div class="row mt-2">
 		<div class="col text-center">
-			<button class="btn btn-large zil-btn cursorHand" [disabled]="(invalidPayment())" (click)="onSend()">Send</button>
+			<button class="btn btn-large zil-btn cursorHand" [disabled]="invalidPayment()" (click)="onSend()">Send</button>
 		</div>
 	</div>
 </div>
@@ -92,6 +112,21 @@
 	<div class="row mt-2">
 		<div class="col-md-6 ml-auto mr-auto">
 		  <span class="input-group-addon">Amount: {{payment.amount}}</span>
+		</div>
+	</div>
+
+	<div class="row mt-5">
+		<div class="col text-center">
+			<a class="btn zil-btn" routerLink="/wallet">Continue</a>
+		</div>
+	</div>
+</div>
+
+<!-- send transaction flow error #3 -->
+<div *ngIf="state == 3">
+	<div class="row mt-5">
+		<div class="col ml-auto mr-auto text-center">
+			<h4>Error in processing transaction.</h4>
 		</div>
 	</div>
 

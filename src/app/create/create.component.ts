@@ -9,7 +9,7 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
 import { Wallet } from '../wallet/wallet'
 import { ZilliqaService } from '../zilliqa.service';
@@ -20,7 +20,7 @@ import { ZilliqaService } from '../zilliqa.service';
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.css']
 })
-export class CreateComponent implements OnInit {
+export class CreateComponent implements OnInit, OnDestroy {
 
   /* STATES:
    * 0: start view - create or access wallet
@@ -38,6 +38,7 @@ export class CreateComponent implements OnInit {
   generatedPrivateKey: string
   uploadedWallet: File = null
   walletDecryptKey: string
+  walletFilename: string
   wallet: Wallet
   loading: boolean
   
@@ -55,13 +56,23 @@ export class CreateComponent implements OnInit {
     this.state = 0;
     this.wallet = new Wallet()
     this.loading = false
+    this.walletFilename = ''
+  }
+
+  ngOnDestroy() {
+    this.wallet = new Wallet()
+    this.generatedPrivateKey = ''
+    this.loading = false
+    this.walletFilename = ''
   }
 
   setState(newState) {
     if (newState == 0) {
       // reset all variables in create wallet flow
       this.wallet = new Wallet()
-      this.generatedPrivateKey = '';
+      this.generatedPrivateKey = ''
+      this.loading = false
+      this.walletFilename = ''
     }
 
     if ([7,8,9].indexOf(newState) > -1) {
@@ -80,6 +91,7 @@ export class CreateComponent implements OnInit {
 
   importWallet() {
     let that = this
+
     this.zilliqaService.importWallet(this.importPrivateKey).then(function(data) {
       if (data.result)
         that.setState(6)
@@ -90,8 +102,20 @@ export class CreateComponent implements OnInit {
     })
   }
 
+  invalidPrivateKey() {
+    // show error if user-entered private key is not valid and atleast some input is entered 
+    return (this.importPrivateKey.length > 0 && !(this.importPrivateKey.match(/^[0-9a-fA-F]{64}$/)))
+  }
+
+  invalidImportBtn() {
+    // disable import button - can't reuse invalidPrivateKey as 0 length also not allowed
+    return !(this.importPrivateKey.match(/^[0-9a-fA-F]{64}$/))
+  }
+
   selectWallet(files: FileList) {
     this.uploadedWallet = files.item(0)
+    this.walletFilename = files.item(0).name
+
     let reader = new FileReader()
     let that = this
 
