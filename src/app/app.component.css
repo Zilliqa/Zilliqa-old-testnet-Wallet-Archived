@@ -2,6 +2,14 @@
   background-color: #3B3C3E;
   color: #6FBDBA;
   padding-bottom: 50px;
+  overflow: scroll;
+  height: 100%;
+  position: fixed;
+}
+@media (max-width: 1024px) {
+  .homeBody {
+    padding-bottom: 150px;
+  }
 }
 .zblue {
 	background-color: #49c1bf;
@@ -72,9 +80,17 @@ table a{
     border-color: #bdbd00;
     color: #6FBDBA;
 }
+.scrollable {
+  overflow-x: scroll;
+}
 .footer-row {
   justify-content: space-between; 
   font-size: 22px;
+}
+@media (max-width: 1024px) {
+  .footer-row {
+    font-size: 1rem;
+  }
 }
 .footer-row a {
   text-decoration: none;

@@ -23,14 +23,12 @@ import { NetworkService } from './network.service';
 export class AppComponent {
 
   data: object
-  containerHeight: number
 
   constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
     this.data = {
       latestDSBlock: '',
       networkId: ''
     }
-    this.containerHeight = window.screen.height - 200
   }
 
   ngOnInit() {

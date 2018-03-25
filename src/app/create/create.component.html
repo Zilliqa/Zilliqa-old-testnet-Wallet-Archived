@@ -8,8 +8,8 @@
 <div *ngIf="state == 0">
 	<div class="row mt-5">
 		<div class="col text-center">
-			<a class="btn btn-large zil-btn" (click)="setState(1)"><i class="fa fa-plus"></i>&nbsp;Create New Wallet</a>
-			<a class="btn btn-large zil-btn" (click)="setState(3)"><i class="fa fa-upload"></i>&nbsp;Access Existing Wallet</a>
+			<a class="btn btn-large zil-btn mt-2" (click)="setState(1)"><i class="fa fa-plus"></i>&nbsp;Create New Wallet</a>
+			<a class="btn btn-large zil-btn mt-2" (click)="setState(3)"><i class="fa fa-upload"></i>&nbsp;Access Existing Wallet</a>
 		</div>
 	</div>
 </div>
@@ -31,15 +31,25 @@
 <div *ngIf="state == 2">
 	<div class="row mt-5">
 		<div class="col text-center">
-			<h4>Your Public Address: {{wallet.address}}</h4>
+			<p>Your Public Address</p>
 		</div>
 	</div>
 	<div class="row mt-2">
+		<div class="col-md-6 ml-auto mr-auto">
+			<span class="input-group-addon"><h4 class="scrollable">{{wallet.address | uppercase}}</h4></span>
+		</div>
+	</div>
+	<div class="row mt-5">
 		<div class="col text-center">
-			<h4>Your private key (save this somewhere safe): {{generatedPrivateKey}}</h4>
+			<p>Your Private Key (save this somewhere safe)</p>
 		</div>
 	</div>
 	<div class="row mt-2">
+		<div class="col-md-8 ml-auto mr-auto">
+			<span class="input-group-addon"><h4 class="scrollable">{{generatedPrivateKey | uppercase}}</h4></span>
+		</div>
+	</div>
+	<div class="row mt-5">
 		<div class="col text-center">
 			<a class="btn zil-btn" routerLink="/wallet/base">Continue</a>
 		</div>
@@ -111,7 +121,7 @@
 		<div class="col text-center">
 			<label class="align-bottom">Enter private key here: </label>
 			<span class="input">
-				<input [(ngModel)]="importPrivateKey" type="text" spellcheck="false" id="input-pk" class="input__field input__field--madoka">
+				<input [(ngModel)]="importPrivateKey" type="text" spellcheck="false" autocomplete="off" id="input-pk" class="input__field input__field--madoka">
 				<label class="input__label input__label--madoka" for="input-pk">
 					<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
 						<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
