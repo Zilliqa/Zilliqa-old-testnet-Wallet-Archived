@@ -10,8 +10,8 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col text-center">
-		<p>{{wallet.address}}</p>
+	<div class="col text-center scrollable">
+		<p class="scrollable">{{wallet.address | uppercase}}</p>
 	</div>
 </div>
 <div class="row mt-2">
@@ -30,8 +30,8 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col text-center">
-		<p><span>{{ privateKeyDisplay }}</span></p>
+	<div class="col text-center scrollable">
+		<p class="scrollable">{{ privateKeyDisplay | uppercase }}</p>
 	</div>
 </div>
 <div class="row mt-2">
@@ -49,7 +49,7 @@
 				</svg>
 			</label>
 		</span>
-		<button class="btn btn-large zil-btn cursorHand align-bottom" 
+		<button class="btn btn-large zil-btn cursorHand align-bottom mt-2" 
 			[disabled]="!validPassphrase()" 
 			(click)="downloadWallet()">Download
 		</button>
