@@ -4,7 +4,8 @@
   padding-bottom: 50px;
   overflow: scroll;
   height: 100%;
-  position: fixed;
+  min-height: calc(100vh - 76px);
+  position: relative;
 }
 @media (max-width: 1024px) {
   .homeBody {
@@ -50,11 +51,11 @@ a {
 	line-height: 45px;
 }
 .network-bar {
-  position: absolute;
+  position: fixed;
   top: 0px;
   left: 25%;
   width: 50%;
-  z-index: 999;
+  z-index: 1100;
   text-align: center;
 }
 .network-bar-text {
@@ -95,6 +96,12 @@ table a{
 .footer-row a {
   text-decoration: none;
   color: black;
+}
+.fixed-bottom {
+  position: sticky;
+}
+.fixed-top {
+  position: sticky;
 }
 
 /* Absolute Center Spinner */
