@@ -56,10 +56,13 @@ export class ZilliqaService {
    * connect to a node using the zilliqa js lib and store its reference
    */
   initLib() {
+    let node_urls = Constants.NODE_URLS
+    let randomNode = node_urls[Math.floor(Math.random() * node_urls.length)]
+
     this.zlib = new zLib({
-      nodeUrl: Constants.NODE_URL
-    });
-    this.node = this.zlib.getNode();
+      nodeUrl: randomNode
+    })
+    this.node = this.zlib.getNode()
   }
 
   /**

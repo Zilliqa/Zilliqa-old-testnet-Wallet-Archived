@@ -1,17 +1,30 @@
 <!doctype html>
 <html lang="en">
-  <head>
-	  <meta charset="utf-8">
-    <title>Zilliqa Wallet</title>
+	<head>
+		<meta charset="utf-8">
+		<meta name="description" content="The Zilliqa wallet - store and transfer ZILs with the Zilliqa wallet. ">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	  <base href="/">
+		<title>Zilliqa Wallet</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	
-	  <link rel="icon" type="image/x-icon" href="zilfavicon.ico">
-  </head>
-  
-  <body>
-	  <app-root></app-root>
+		<base href="/">
+
+		<link rel="icon" type="image/x-icon" href="zilfavicon.ico">
+		
+		<!-- anti-clickjacking script -->
+		<style id="antiClickjack">body{display:none !important;}</style>
+
+		<script type="text/javascript">
+			if (self === top) {
+				var antiClickjack = document.getElementById("antiClickjack");
+				antiClickjack.parentNode.removeChild(antiClickjack);
+			} else {
+				top.location = self.location;
+			}
+		</script>
+	</head>
+
+	<body>
+		<app-root></app-root>
 	</body>
 </html>
