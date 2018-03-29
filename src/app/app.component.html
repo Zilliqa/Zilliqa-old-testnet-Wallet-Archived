@@ -7,13 +7,13 @@
 
 	<a class="navbar-brand" routerLink="/home"><img src="../assets/images/logo.png" class="navbar-logo mr-2" />Zilliqa Wallet</a>
 
-	<div class="navbar-collapse collapse" id="navbarSupportedContent">
-		<ul class="navbar-nav mr-auto ml-auto">
-			<li class="nav-item">
-				<a class="nav-link" href="http://localhost:4100" target="blank">Explorer</a>
+	<div class="navbar-collapse collapse menu menu--miranda" id="navbarSupportedContent">
+		<ul class="navbar-nav mr-auto ml-auto menu__list">
+			<li class="menu__item menu__item--hover">
+				<a class="menu__link" href="http://localhost:4100" target="blank">Explorer</a>
 			</li>
-			<li *ngIf="zilliqaService.getWallet().address != undefined">
-				<a class="nav-link" href="#" routerLink="home">Logout</a>
+			<li class="menu__item menu__item--hover" *ngIf="zilliqaService.getWallet().address != undefined">
+				<a class="menu__link" href="#" routerLink="home">Logout</a>
 			</li>
 		</ul>
 
