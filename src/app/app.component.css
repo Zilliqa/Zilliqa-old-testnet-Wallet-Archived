@@ -84,9 +84,6 @@ table a{
 .breakword {
   word-wrap: break-word;
 }
-.scrollable {
-  overflow-x: scroll;
-}
 .footer-row {
   justify-content: space-between; 
   font-size: 22px;
