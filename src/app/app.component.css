@@ -81,6 +81,9 @@ table a{
     border-color: #bdbd00;
     color: #6FBDBA;
 }
+.breakword {
+  word-wrap: break-word;
+}
 .scrollable {
   overflow-x: scroll;
 }
