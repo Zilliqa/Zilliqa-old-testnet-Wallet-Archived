@@ -1,6 +1,6 @@
 # Zilliqa-Wallet
 
-This project is experimental and still under development.
+This project is experimental and still under development. This is the static-page version.
 
 ## Setup
 
