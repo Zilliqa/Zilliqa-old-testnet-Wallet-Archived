@@ -91,13 +91,13 @@ export class WalletsendComponent implements OnInit {
   }
 
   invalidAmount() {
-    // true if negative or blank or higher than wallet balance - don't show initial error on 0
-    return  !(this.payment.amount) || (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
+    // true if blank or negative or higher than wallet balance - 0 is allowed
+    return (this.payment.amount == null) || (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
   }
 
   invalidPayment() {
     // true if address invalid or recaptcha not filled or invalidAmount()
-    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled)//|| this.invalidAmount())
+    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled || this.invalidAmount())
   }
 
   onSend() {

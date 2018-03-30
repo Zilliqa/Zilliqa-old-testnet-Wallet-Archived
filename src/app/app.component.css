@@ -106,10 +106,11 @@ table a{
 .logo-subscript {
   position: absolute;
   top: 45px;
-  left: 130px;
+  left: 150px;
+  color: #9c9b9b;
   font-size: 0.9rem;
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .logo-subscript {
     position: absolute;
     top: 45px;
