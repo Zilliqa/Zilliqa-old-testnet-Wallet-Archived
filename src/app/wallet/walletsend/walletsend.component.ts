@@ -66,7 +66,7 @@ export class WalletsendComponent implements OnInit {
   }
 
   invalidAmount() {
-    return false//(this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
+    return (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
   }
 
   invalidPayment() {

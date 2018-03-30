@@ -22,20 +22,20 @@
 			<li class="nav-item mr-5 ml-2">
 				<div class="row border">
 
-					<div class="col-3 col-md-6 stats-icon">
+					<div class="col-3 col-md-4 stats-icon">
 						<i class="fa fa-th"></i>
 					</div>
 
 					<!-- visible except on mobile -->
-					<div class="col-9 col-md-6 d-none d-sm-block">
+					<div class="col-9 col-md-8 d-none d-sm-block">
 						<div class="row">
 							<div class="col text-center text-muted">
-								<small>Block </small>
+								<small>Tx Block</small>
 							</div>
 						</div>
-						<div class="row">
+						<div class="row mt-1">
 							<div class="col text-center">
-								<span class="block-data"><strong>#{{data.latestDSBlock}}</strong></span>
+								<span class="block-data"><strong>#{{data.latestTxBlock}}</strong></span>
 							</div>
 						</div>
 					</div>
@@ -44,7 +44,7 @@
 					<div class="col d-block d-sm-none">
 						<div class="row">
 							<div class="col text-center text-muted" style="font-size: 1.5rem;">
-								<small>Block <strong>#{{data.latestDSBlock}}</strong></small>
+								<small>Tx Block <strong>#{{data.latestTxBlock}}</strong></small>
 							</div>
 						</div>
 					</div>
@@ -62,10 +62,10 @@
 					<div class="col-9 col-md-8 d-none d-sm-block">
 						<div class="row">
 							<div class="col text-center text-muted">
-								<small>Network:</small>
+								<small>Network</small>
 							</div>
 						</div>
-						<div class="row">
+						<div class="row mt-1">
 							<div class="col text-center">
 								<span class="network-data"><strong>{{data.networkId}}</strong></span>
 							</div>

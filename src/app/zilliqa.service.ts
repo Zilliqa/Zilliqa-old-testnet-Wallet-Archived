@@ -66,7 +66,7 @@ export class ZilliqaService {
   }
 
   /**
-   * fetch miscellaneous data like networkId/latest DS blocknum
+   * fetch miscellaneous data like networkId/latest Tx blocknum
    * @returns {Promise} Promise object containing the required data
    */
   getInitData(): Promise<any> {
@@ -77,13 +77,13 @@ export class ZilliqaService {
       if (err || !data1.result) {
         deferred.reject(err)
       } else {
-        that.node.getLatestDsBlock(function(err, data2) {
+        that.node.getLatestTxBlock(function(err, data2) {
           if (err || !data2.result) {
             deferred.reject(err)
           } else {
             deferred.resolve({
               networkId: data1.result,
-              latestDSBlock: data2.result.header.blockNum
+              latestTxBlock: data2.result.header.BlockNum
             })
           }
         })
