@@ -26,7 +26,7 @@ export class AppComponent {
 
   constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
     this.data = {
-      latestDSBlock: '',
+      latestTxBlock: '',
       networkId: ''
     }
   }
