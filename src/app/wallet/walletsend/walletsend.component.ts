@@ -9,12 +9,15 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core'
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'
 
 import { Wallet } from '../wallet'
 import { Payment } from './payment'
 import { ZilliqaService } from '../../zilliqa.service'
+import * as $ from 'jquery';
 
+
+declare var grecaptcha: any
 
 @Component({
   selector: 'app-walletsend',
@@ -32,12 +35,14 @@ export class WalletsendComponent implements OnInit {
   pendingTxId: string
   wallet: Wallet
   payment: Payment
+  recaptchaFilled: boolean
 
-  constructor(private zilliqaService: ZilliqaService) { 
+  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) { 
     this.state = 0
     this.pendingTxId = null
     this.wallet = new Wallet()
     this.payment = new Payment()
+    this.recaptchaFilled = false
   }
 
   ngOnInit() {
@@ -48,11 +53,31 @@ export class WalletsendComponent implements OnInit {
       gasPrice: 0,
       gasLimit: 0
     }
+
+    // recaptcha hack
+    this.initRecaptcha()
+  }
+
+  initRecaptcha() {
+    let that = this
+ 
+    if ($('.g-recaptcha').length > 0) {
+      grecaptcha.render("recaptcha", {
+        sitekey: '6LfB808UAAAAABr8IkcXDwjj4_G6eRURtVgkj-i9',
+        callback: function(data) {
+          that.recaptchaFilled = true
+          that.ref.detectChanges()
+        }
+      })
+      return
+    }
+    window.setTimeout(this.initRecaptcha.bind(this), 1000);
   }
 
   ngOnDestroy() {
     this.payment = new Payment()
     this.pendingTxId = null
+    this.recaptchaFilled = false
     this.setState(0)
   }
 
@@ -61,26 +86,29 @@ export class WalletsendComponent implements OnInit {
   }
 
   invalidAddress() {
-    // show error if address not valid and some input already entered by user
+    // true if address not valid and some input already entered by user
     return (this.payment.address.length > 0 && !(this.payment.address.match(/^[0-9a-fA-F]{40}$/)))
   }
 
   invalidAmount() {
-    return (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
+    // true if negative or blank or higher than wallet balance - don't show initial error on 0
+    return  !(this.payment.amount) || (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
   }
 
   invalidPayment() {
-    // disable button - can't reuse invalidAddress as 0 length also not allowed
-    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || this.invalidAmount())
+    // true if address invalid or recaptcha not filled or invalidAmount()
+    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled)//|| this.invalidAmount())
   }
 
   onSend() {
     let that = this
     this.zilliqaService.sendPayment(this.payment).then((data) => {
       that.pendingTxId = data.txId
+      grecaptcha.reset()
       that.setState(1)
       that.zilliqaService.refreshBalance().then((data) => {})
     }, (err) => {
+      grecaptcha.reset()
       that.setState(3)
     })
   }
