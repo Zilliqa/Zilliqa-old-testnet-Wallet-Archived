@@ -20,7 +20,7 @@ import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { Constants } from './constants';
 import { zLib } from 'z-lib';
-import { secp256k1, randomBytes, pbkdf2Sync, scrypt, sha3 } from 'bcrypto';
+import { secp256k1, randomBytes, pbkdf2Sync, scrypt, sha3, sha256 } from 'bcrypto';
 import * as aesjs from 'aes-js';
 import * as Signature from 'elliptic/lib/elliptic/ec/signature';
 import * as uuid from 'uuid';
@@ -251,7 +251,7 @@ export class ZilliqaService {
     if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
 
     let pubKey = secp256k1.publicKeyCreate(privateKey, true)
-    let pubKeyHash = sha3.digest(pubKey) // sha3 hash of the public key
+    let pubKeyHash = sha256.digest(pubKey) // sha256 hash of the public key
     let address = pubKeyHash.toString('hex', 12) // rightmost 160 bits/20 bytes of the hash
 
     return address
