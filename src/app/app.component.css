@@ -103,6 +103,30 @@ table a{
 .fixed-top {
   position: sticky;
 }
+.logo-subscript {
+  position: absolute;
+  top: 45px;
+  left: 130px;
+  font-size: 0.9rem;
+}
+@media (max-width: 768px) {
+  .logo-subscript {
+    position: absolute;
+    top: 45px;
+    left: 90%;
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 606px) {
+  .logo-subscript {
+    left: 88%;
+  }
+}
+@media (max-width: 510px) {
+  .logo-subscript {
+    left: 85%;
+  }
+}
 
 /* Absolute Center Spinner */
 .loadingOverlay {

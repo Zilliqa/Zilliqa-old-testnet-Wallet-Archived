@@ -13,7 +13,6 @@
 		
 		<!-- anti-clickjacking script -->
 		<style id="antiClickjack">body{display:none !important;}</style>
-
 		<script type="text/javascript">
 			if (self === top) {
 				var antiClickjack = document.getElementById("antiClickjack");
@@ -22,6 +21,10 @@
 				top.location = self.location;
 			}
 		</script>
+
+		<!-- spam prevention recaptcha script (temporary) -->
+		<script type="text/javascript">var recaptchaCallback = function() {}</script>
+		<script src='https://www.google.com/recaptcha/api.js?onload=recaptchaCallback&render=explicit' async defer></script>
 	</head>
 
 	<body>
