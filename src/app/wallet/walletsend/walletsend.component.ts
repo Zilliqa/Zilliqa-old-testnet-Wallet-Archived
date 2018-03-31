@@ -85,9 +85,19 @@ export class WalletsendComponent implements OnInit {
     this.state = newState
   }
 
+  convertHexAddress() {
+    if (this.payment.address && this.payment.address.substr(0, 2) == '0x') {
+      return this.payment.address.substr(2)
+    } else {
+      return this.payment.address
+    }
+  }
+
   invalidAddress() {
+    let addr = this.convertHexAddress()
+
     // true if address not valid and some input already entered by user
-    return (this.payment.address.length > 0 && !(this.payment.address.match(/^[0-9a-fA-F]{40}$/)))
+    return (addr.length > 0 && !(addr.match(/^[0-9a-fA-F]{40}$/)))
   }
 
   invalidAmount() {
@@ -96,11 +106,15 @@ export class WalletsendComponent implements OnInit {
   }
 
   invalidPayment() {
+    let addr = this.convertHexAddress()
+
     // true if address invalid or recaptcha not filled or invalidAmount()
-    return (!(this.payment.address.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled || this.invalidAmount())
+    return (!(addr.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled || this.invalidAmount())
   }
 
   onSend() {
+    this.payment.address = this.convertHexAddress()
+    
     let that = this
     this.zilliqaService.sendPayment(this.payment).then((data) => {
       that.pendingTxId = data.txId
