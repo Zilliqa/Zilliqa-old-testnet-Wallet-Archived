@@ -38,8 +38,10 @@ export class ZilliqaService {
   };
   nodeData: {};
   userWallet: Wallet
+  networkLoading: boolean
 
   constructor(private http: HttpClient) {
+    this.networkLoading = false
     this.userWallet = new Wallet()
     this.walletData = {
       version: null,
@@ -281,6 +283,7 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing boolean - if imported successfully or not
    */
   importWallet(privateKey): Promise<any> {
+    this.startLoading()
     var deferred = new $.Deferred()
 
     if (!!(privateKey.match(/[0-9a-fA-F]{64}/)) == false) {
@@ -314,16 +317,19 @@ export class ZilliqaService {
               result: true
             })
           }
+          that.endLoading()
         })
       } else {
         deferred.reject({
           error: 'Invalid private key.'
         })
+        this.endLoading()
       }
     } catch (e) {
       deferred.reject({
         error: e
       })
+      this.endLoading()
     }
     return deferred.promise()
   }
@@ -374,7 +380,9 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing the newly created transaction id
    */
   sendPayment(payment: any): Promise<any> {
+    this.startLoading()
     var deferred = new $.Deferred()
+
     let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
 
     let txn = {
@@ -404,6 +412,7 @@ export class ZilliqaService {
     }
     txn['signature'] = r + s
 
+    let that = this
     this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) {
         deferred.reject(err)
@@ -412,8 +421,17 @@ export class ZilliqaService {
           txId: data.result
         })
       }
+      that.endLoading()
     })
 
     return deferred.promise()
+  }
+
+  startLoading() {
+    setTimeout(() => {this.networkLoading = true}, 0)
+  }
+
+  endLoading() {
+    setTimeout(() => {this.networkLoading = false}, 0)
   }
 }

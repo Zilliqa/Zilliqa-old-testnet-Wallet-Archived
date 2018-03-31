@@ -103,6 +103,19 @@ table a{
 .fixed-top {
   position: sticky;
 }
+@media (max-width: 820px) and (min-width: 768px) {
+  .footer-icons .fa {
+    margin-right: 0.5rem !important;
+  }
+  .menu--miranda .menu__item {
+    margin: 0.3em;
+  }
+  .menu__link {
+    font-size: 0.9em;
+    padding: 0.8em;
+    min-width: 80px;
+  }
+}
 .logo-subscript {
   position: absolute;
   top: 45px;

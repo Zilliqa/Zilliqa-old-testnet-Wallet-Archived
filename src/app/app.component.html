@@ -91,6 +91,8 @@
 	<router-outlet></router-outlet>
 </div>
 
+<div *ngIf="this.zilliqaService.networkLoading == true" class="loadingOverlay"></div>
+
 <footer class="footer fixed-bottom">
 	<div class="container-fluid light-gray">
 
@@ -107,7 +109,7 @@
 			</div>
 			
 			<!-- larger screens -->
-			<div class="col-6 col-md-4 text-right d-none d-md-block">
+			<div class="col-6 col-md-4 footer-icons text-right d-none d-md-block">
 				<span><a href="https://www.twitter.com/zilliqa" target="blank"><i class="fa fa-twitter mr-3"></i></a></span>
 				<span><a href="https://www.reddit.com/r/zilliqa" target="blank"><i class="fa fa-reddit-alien mr-3"></i></a></span>
 				<span><a href="https://blog.zilliqa.com" target="blank"><i class="fa fa-medium mr-3"></i></a></span>
@@ -117,7 +119,7 @@
 				<span><a href="https://www.github.com/Zilliqa/Zilliqa" target="blank"><i class="fa fa-github mr-3"></i></a></span>
 			</div>
 			<!-- smaller screens -->
-			<div class="col-8 col-md-5 text-right d-sm-block d-md-none">
+			<div class="col-8 col-md-5 footer-icons text-right d-sm-block d-md-none">
 				<span><a href="https://www.twitter.com/zilliqa" target="blank"><i class="fa fa-twitter mr-2"></i></a></span>
 				<span><a href="https://www.reddit.com/r/zilliqa" target="blank"><i class="fa fa-reddit-alien mr-2"></i></a></span>
 				<span><a href="https://blog.zilliqa.com" target="blank"><i class="fa fa-medium mr-2"></i></a></span>
