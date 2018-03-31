@@ -22,9 +22,9 @@ import { NetworkService } from './network.service';
 })
 export class AppComponent {
 
-  data: object
+  data: any
 
-  constructor(private zilliqaService: ZilliqaService, private networkService: NetworkService) {
+  constructor(public zilliqaService: ZilliqaService, public networkService: NetworkService) {
     this.data = {
       latestTxBlock: '',
       networkId: ''
