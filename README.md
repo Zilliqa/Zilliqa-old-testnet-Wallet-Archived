@@ -4,7 +4,9 @@ This project is experimental and still under development.
 
 ## Setup
 
-- Nodejs and NPM must be installed on your system
+- Nodejs and NPM must be installed on your system; run the following commands:
+- `curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -`
+- `sudo apt-get install nodejs`
 - Navigate to root directory and run the following:
 - `sudo npm install -g @angular/cli`
 - `npm install`
