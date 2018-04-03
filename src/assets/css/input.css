@@ -254,47 +254,56 @@
 
 /* bottom line */
 .menu--miranda .menu__item .menu__link::after {
-	-webkit-transition-delay: 0.3s;
-	transition-delay: 0.3s;
+	-webkit-transition-delay: 0.15s;
+	transition-delay: 0.15s;
 }
 
-.menu--miranda .menu__item:hover .menu__link::after {
+.menu--miranda .menu__item:hover .menu__link::after,
+.menu--miranda .menu__item--current .menu__link::after {
 	-webkit-transition-delay: 0s;
 	transition-delay: 0s;
 }
 
 /* left line */
 .menu--miranda .menu__item::before {
-	-webkit-transition-delay: 0.2s;
-	transition-delay: 0.2s;
-}
-
-.menu--miranda .menu__item:hover::before {
 	-webkit-transition-delay: 0.1s;
 	transition-delay: 0.1s;
+}
+
+.menu--miranda .menu__item:hover::before,
+.menu--miranda .menu__item--current::before {
+	-webkit-transition-delay: 0.05s;
+	transition-delay: 0.05s;
 }
 
 /* top line */
 .menu--miranda .menu__item .menu__link::before {
+	-webkit-transition-delay: 0.05s;
+	transition-delay: 0.05s;
+}
+
+.menu--miranda .menu__item:hover .menu__link::before,
+.menu--miranda .menu__item--current .menu__link::before {
 	-webkit-transition-delay: 0.1s;
 	transition-delay: 0.1s;
 }
 
-.menu--miranda .menu__item:hover .menu__link::before {
-	-webkit-transition-delay: 0.2s;
-	transition-delay: 0.2s;
+/* right line */
+.menu--miranda .menu__item:hover::after,
+.menu--miranda .menu__item--current::after {
+	-webkit-transition-delay: 0.15s;
+	transition-delay: 0.15s;
 }
 
-/* right line */
-.menu--miranda .menu__item:hover::after {
-	-webkit-transition-delay: 0.3s;
-	transition-delay: 0.3s;
-}
 
 .menu--miranda .menu__item:hover::before,
 .menu--miranda .menu__item:hover::after,
 .menu--miranda .menu__item:hover .menu__link::before,
-.menu--miranda .menu__item:hover .menu__link::after {
+.menu--miranda .menu__item:hover .menu__link::after,
+.menu--miranda .menu__item--current::before,
+.menu--miranda .menu__item--current::after,
+.menu--miranda .menu__item--current .menu__link::before,
+.menu--miranda .menu__item--current .menu__link::after {
 	-webkit-transform: scale3d(1, 1, 1);
 	transform: scale3d(1, 1, 1);
 }
