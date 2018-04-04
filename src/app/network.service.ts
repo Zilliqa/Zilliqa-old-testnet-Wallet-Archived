@@ -31,6 +31,7 @@ export class NetworkService {
   }
 
   checkConnection() {
+
     let that = this
 
     if(!(navigator.onLine)) {
@@ -39,10 +40,13 @@ export class NetworkService {
 
     this.zilliqaService.node.isConnected((err, data) => {
       if (err) {
-        that.failedConnection()
+        // commented for maintenance
+        //that.failedConnection()
       } else {
-        that.successfulConnection()
+        //that.successfulConnection()
       }
+    }, (err) => {
+      //that.failedConnection()
     })
   }
 

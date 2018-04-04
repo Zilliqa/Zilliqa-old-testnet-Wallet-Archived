@@ -23,6 +23,7 @@ import { WalletComponent } from './wallet/wallet.component';
 import { WalletbaseComponent } from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
+import { MaintenanceComponent } from './error/maintenance.component';
 import { Constants } from './constants';
 import { ZilliqaService } from './zilliqa.service';
 import { AuthGuardService } from './auth-guard.service';
@@ -48,7 +49,8 @@ export class RavenErrorHandler implements ErrorHandler {
     WalletComponent,
     WalletbaseComponent,
     WalletsendComponent,
-    WallethistoryComponent
+    WallethistoryComponent,
+    MaintenanceComponent
   ],
   imports: [
     BrowserModule,

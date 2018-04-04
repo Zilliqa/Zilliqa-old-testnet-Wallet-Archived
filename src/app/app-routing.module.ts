@@ -18,10 +18,11 @@ import { WalletComponent }      from './wallet/wallet.component';
 import { WalletbaseComponent }      from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent }      from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent }      from './wallet/wallethistory/wallethistory.component';
+import { MaintenanceComponent }      from './error/maintenance.component';
 import { AuthGuardService }      from './auth-guard.service';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: '**', redirectTo: '/maintenance', pathMatch: 'full' },
   { path: 'home', component: HomeComponent },
   { path: 'create', component: CreateComponent },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuardService],
@@ -31,7 +32,8 @@ const routes: Routes = [
       { path: 'send', component: WalletsendComponent }
       // { path: 'history', component: WallethistoryComponent }
     ]
-  }
+  },
+  { path: 'maintenance', component: MaintenanceComponent }
 ];
 
 @NgModule({

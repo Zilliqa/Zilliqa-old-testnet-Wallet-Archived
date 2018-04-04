@@ -1,4 +1,4 @@
-<div class='network-bar' [ngClass]="{'invisible': this.networkService.networkBarVisible == false, 'green-connected': this.networkService.nodeConnected == true, 'red-disconnected': this.networkService.nodeConnected == false}" ><span class="network-bar-text">{{this.networkService.nodeStatus}}</span></div>
+<div *ngIf="false" class='network-bar' [ngClass]="{'invisible': this.networkService.networkBarVisible == false, 'green-connected': this.networkService.nodeConnected == true, 'red-disconnected': this.networkService.nodeConnected == false}" ><span class="network-bar-text">{{this.networkService.nodeStatus}}</span></div>
 
 <nav class="navbar navbar-expand-md navbar-light fixed-top" style="background-color: white;">
 	<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -7,7 +7,7 @@
 
 	<a class="navbar-brand" routerLink="/home"><img src="../assets/images/logo.png" class="navbar-logo mr-2" />Zilliqa Wallet<small class="logo-subscript">beta</small></a>
 
-	<div class="navbar-collapse collapse menu menu--miranda" id="navbarSupportedContent">
+	<div *ngIf="false" class="navbar-collapse collapse menu menu--miranda" id="navbarSupportedContent">
 		<ul class="navbar-nav mr-auto ml-auto menu__list">
 			<li class="menu__item menu__item--hover">
 				<a class="menu__link" href="https://explorer.zilliqa.com" target="blank">Explorer</a>
