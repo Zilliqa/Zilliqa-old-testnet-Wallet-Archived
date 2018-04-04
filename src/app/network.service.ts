@@ -40,13 +40,12 @@ export class NetworkService {
 
     this.zilliqaService.node.isConnected((err, data) => {
       if (err) {
-        // commented for maintenance
-        //that.failedConnection()
+        that.failedConnection()
       } else {
-        //that.successfulConnection()
+        that.successfulConnection()
       }
     }, (err) => {
-      //that.failedConnection()
+      that.failedConnection()
     })
   }
 

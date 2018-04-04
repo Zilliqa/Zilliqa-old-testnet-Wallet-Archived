@@ -22,7 +22,7 @@ import { MaintenanceComponent }      from './error/maintenance.component';
 import { AuthGuardService }      from './auth-guard.service';
 
 const routes: Routes = [
-  { path: '**', redirectTo: '/maintenance', pathMatch: 'full' },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'home', component: HomeComponent },
   { path: 'create', component: CreateComponent },
   { path: 'wallet', component: WalletComponent, canActivate: [AuthGuardService],
