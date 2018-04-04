@@ -10,11 +10,11 @@
 
 
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, ErrorHandler } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
-import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
+import * as Raven from 'raven-js';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
@@ -23,10 +23,22 @@ import { WalletComponent } from './wallet/wallet.component';
 import { WalletbaseComponent } from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
+import { MaintenanceComponent } from './error/maintenance.component';
+import { Constants } from './constants';
 import { ZilliqaService } from './zilliqa.service';
 import { AuthGuardService } from './auth-guard.service';
 import { NetworkService } from './network.service';
 import { AppRoutingModule } from './app-routing.module';
+
+Raven
+  .config(Constants.RAVEN_URL)
+  .install();
+
+export class RavenErrorHandler implements ErrorHandler {
+  handleError(err:any) : void {
+    Raven.captureException(err);
+  }
+}
 
 
 @NgModule({
@@ -37,7 +49,8 @@ import { AppRoutingModule } from './app-routing.module';
     WalletComponent,
     WalletbaseComponent,
     WalletsendComponent,
-    WallethistoryComponent
+    WallethistoryComponent,
+    MaintenanceComponent
   ],
   imports: [
     BrowserModule,
@@ -48,7 +61,8 @@ import { AppRoutingModule } from './app-routing.module';
   providers: [
     ZilliqaService,
     AuthGuardService,
-    NetworkService
+    NetworkService,
+    { provide: ErrorHandler, useClass: RavenErrorHandler }
   ],
   bootstrap: [AppComponent]
 })

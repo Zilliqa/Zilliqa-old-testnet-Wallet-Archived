@@ -67,20 +67,23 @@ export class WalletbaseComponent implements OnInit {
   }
 
   downloadWalletAsync() {
-    let text = this.zilliqaService.generateWalletJson(this.walletEncryptPassphrase)
-  
-    let filename = this.getWalletFilename()
+    let that = this
+    this.zilliqaService.generateWalletJson(this.walletEncryptPassphrase).then((data) => {
+      let text = data.result
 
-    // generate file for download
-    let element = document.createElement('a')
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
-    element.setAttribute('download', filename)
-    element.style.display = 'none'
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
+      let filename = that.getWalletFilename()
 
-    this.loading = false
-    this.walletEncryptPassphrase = ''
+      // generate file for download
+      let element = document.createElement('a')
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
+      element.setAttribute('download', filename)
+      element.style.display = 'none'
+      document.body.appendChild(element)
+      element.click()
+      document.body.removeChild(element)
+
+      that.loading = false
+      that.walletEncryptPassphrase = ''
+    })
   }
 }

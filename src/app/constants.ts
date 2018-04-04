@@ -9,4 +9,6 @@ export class Constants {
     'http://localhost:4201',
     'http://localhost:4201'
   ]
+
+  public static RAVEN_URL = 'https://43ce6ef6087c428ea8604285817fc9e0@sentry.io/1053004'
 }
