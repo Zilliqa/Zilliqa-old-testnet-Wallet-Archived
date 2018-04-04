@@ -20,7 +20,8 @@ import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { Constants } from './constants';
 import { zLib } from 'z-lib';
-import { secp256k1, randomBytes, pbkdf2Sync, scrypt, sha3, sha256 } from 'bcrypto';
+import { secp256k1, randomBytes, pbkdf2Sync, sha3, sha256 } from 'bcrypto';
+import * as scryptAsync from 'scrypt-async';
 import * as aesjs from 'aes-js';
 import * as Signature from 'elliptic/lib/elliptic/ec/signature';
 import * as uuid from 'uuid';
@@ -116,7 +117,10 @@ export class ZilliqaService {
    * @param {string} passphrase - the passphrase to be used to encrypt the wallet
    * @returns {string} string of the keystore json
    */
-  generateWalletJson(passphrase): string {
+  generateWalletJson(passphrase) {
+    var deferred = new $.Deferred()
+    var that = this
+
     let privateKey = new Buffer(this.userWallet.privateKey, 'hex')
     let address = this.userWallet.address
 
@@ -124,34 +128,41 @@ export class ZilliqaService {
     let iv = randomBytes(16);
 
     // key derivation function used is scrypt along with standard params
-    let derivedKey = scrypt.derive(new Buffer(passphrase), salt, 262144, 1, 8, 32)
-    // ciphertext is private key encrypted with aes-128-ctr
-    let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
-    let ciphertext = aesctr.encrypt(privateKey)
+    scryptAsync(passphrase, salt, {N: 262144, r: 1, p: 8, dkLen: 32}, function(derivedKey) {
+      derivedKey = new Buffer(derivedKey)
 
-    var result = {
-        address: address,
-        crypto: {
-            cipher: "aes-128-ctr",
-            cipherparams: {
-                iv: iv.toString('hex'),
-            },
-            ciphertext: new Buffer(ciphertext).toString('hex'),
-            kdf: "scrypt",
-            kdfparams: {
-                dklen: 32,
-                n: 262144,
-                r: 1,
-                p: 8,
-                salt: salt.toString('hex'),
-            },
-            mac: sha3.digest(Buffer.concat([derivedKey.slice(16, 32), new Buffer(ciphertext)])).toString('hex'),
-        },
-        id: uuid.v4({random: randomBytes(16)}),
-        version: 3,
-    }
+      // ciphertext is private key encrypted with aes-128-ctr
+      let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
+      let ciphertext = aesctr.encrypt(privateKey)
 
-    return JSON.stringify(result)
+      var result = {
+          address: address,
+          crypto: {
+              cipher: "aes-128-ctr",
+              cipherparams: {
+                  iv: iv.toString('hex'),
+              },
+              ciphertext: new Buffer(ciphertext).toString('hex'),
+              kdf: "scrypt",
+              kdfparams: {
+                  dklen: 32,
+                  n: 262144,
+                  r: 1,
+                  p: 8,
+                  salt: salt.toString('hex'),
+              },
+              mac: sha3.digest(Buffer.concat([derivedKey.slice(16, 32), new Buffer(ciphertext)])).toString('hex'),
+          },
+          id: uuid.v4({random: randomBytes(16)}),
+          version: 3,
+      }
+
+      deferred.resolve({ 
+        result: JSON.stringify(result) 
+      })
+    })
+
+    return deferred.promise()
   }
 
   /**
@@ -180,6 +191,9 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing boolean - if imported successfully or not
    */
   decryptWalletFile(passphrase): Promise<any> {
+    let that = this
+    var deferred = new $.Deferred()
+
     // use the passphrase and keystore json file to get private key
     if (passphrase && passphrase.length >= 8) {
       let walletJson = JSON.parse(this.walletData.encryptedWalletFile)
@@ -190,28 +204,27 @@ export class ZilliqaService {
       let kdfparams = walletJson['crypto']['kdfparams']
       
       // recreate the derived key using scrypt and the same parameters
-      let derivedKey = scrypt.derive(new Buffer(passphrase), salt, kdfparams['n'], kdfparams['r'], kdfparams['p'], kdfparams['dklen'])
+      scryptAsync(passphrase, salt, {N: kdfparams['n'], r: kdfparams['r'], p: kdfparams['p'], dkLen: kdfparams['dklen']}, function(derivedKey) {
+        derivedKey = new Buffer(derivedKey, 'hex')
 
-      // check passphrase using mac
-      let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
-      if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
-        // Incorrect passphrase
-        // needs to return deferred obj to match return type of function
-        var deferred = new $.Deferred()
-        deferred.resolve({result: false})
-        return deferred.promise()
-      }
+        // check passphrase using mac
+        let mac = sha3.digest(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).toString('hex')      
+        if (mac.toLowerCase() !== walletJson['crypto']['mac'].toLowerCase()) {
+          // Incorrect passphrase
+          deferred.resolve({result: false})
+        }
 
-      let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
-      let decryptedSeed = aesctr.decrypt(ciphertext);
+        let aesctr = new aesjs.ModeOfOperation.ctr(derivedKey.slice(0, 16), new aesjs.Counter(iv))
+        let decryptedSeed = aesctr.decrypt(ciphertext);
 
-      return this.importWallet(new Buffer(decryptedSeed).toString('hex'))
-    } else {
-      // needs to return deferred obj to match return type of function
-      var deferred = new $.Deferred()
+        deferred.resolve({
+          result: new Buffer(decryptedSeed).toString('hex')
+        })
+      })
+    } else {      
       deferred.resolve({result: false})
-      return deferred.promise()
     }
+    return deferred.promise()
   }
 
   /**

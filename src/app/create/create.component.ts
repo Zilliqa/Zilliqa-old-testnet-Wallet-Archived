@@ -139,15 +139,17 @@ export class CreateComponent implements OnInit, OnDestroy {
 
   decryptWalletAsync() {
     let that = this
-    this.zilliqaService.decryptWalletFile(this.walletDecryptKey).then(function(data) {
-      that.loading = false
-      if (data.result) {
-        that.setState(6) // correct passphrase & balance fetched successfully
-      } else {
-        that.setState(8) // incorrect passphrase or getBalance call failed
-      }
-    }, function(data) {
-      that.setState(10)
+    
+    this.zilliqaService.decryptWalletFile(this.walletDecryptKey).then((data) => {
+      that.zilliqaService.importWallet(data.result).then((data1) => {
+        if (data1.result) {
+          that.setState(6) // correct passphrase & balance fetched successfully
+        } else {
+          that.setState(8) // incorrect passphrase or getBalance call failed
+        }
+      }, function(data) {
+        that.setState(10)
+      })
     })
   }
 }
