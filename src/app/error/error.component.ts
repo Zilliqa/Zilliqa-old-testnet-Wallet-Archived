@@ -14,11 +14,11 @@ import { Router } from '@angular/router';
 
 
 @Component({
-  selector: 'app-maintenance',
-  templateUrl: './maintenance.component.html',
+  selector: 'app-error',
+  templateUrl: './error.component.html',
   styleUrls: ['./error.component.css']
 })
-export class MaintenanceComponent implements OnInit, OnDestroy {
+export class ErrorComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router) { }
 

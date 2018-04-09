@@ -18,6 +18,7 @@ import { WalletComponent }      from './wallet/wallet.component';
 import { WalletbaseComponent }      from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent }      from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent }      from './wallet/wallethistory/wallethistory.component';
+import { ErrorComponent }      from './error/error.component';
 import { MaintenanceComponent }      from './error/maintenance.component';
 import { AuthGuardService }      from './auth-guard.service';
 
@@ -33,7 +34,9 @@ const routes: Routes = [
       // { path: 'history', component: WallethistoryComponent }
     ]
   },
-  { path: 'maintenance', component: MaintenanceComponent }
+  { path: 'maintenance', component: MaintenanceComponent },
+  { path: '404', component: ErrorComponent },
+  { path: '**', redirectTo: '/404' }
 ];
 
 @NgModule({
