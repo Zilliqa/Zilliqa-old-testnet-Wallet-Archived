@@ -400,7 +400,7 @@ export class ZilliqaService {
 
     let txn = {
       version: 0,
-      nonce: this.userWallet.nonce,
+      nonce: this.userWallet.nonce + 1,
       to: payment.address,
       amount: payment.amount,
       pubKey: pubKey.toString('hex'),
