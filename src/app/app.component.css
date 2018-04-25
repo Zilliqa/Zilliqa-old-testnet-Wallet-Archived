@@ -88,6 +88,23 @@ table a{
   justify-content: space-between; 
   font-size: 22px;
 }
+#warningModal .modal-content {
+  background-color: #3b3c3e; border: 1px solid #49c1bf;
+}
+#warningModal .modal-header {
+  padding-left: 35%; border-bottom: 1px solid #49c1bf; color: #49c1bf;
+}
+#warningModal .modal-body {
+  border-bottom: 1px solid #49c1bf;
+}
+#warningModal .modal-footer {
+  padding-right: 45%;
+  border-top: none;
+}
+#warningModal .close {
+  color: #49c1bf;
+}
+
 @media (max-width: 1024px) {
   .footer-row {
     font-size: 1rem;
@@ -141,6 +158,10 @@ table a{
     left: 85%;
   }
 }
+.warning {
+  color: red;
+}
+
 
 /* Absolute Center Spinner */
 .loadingOverlay {

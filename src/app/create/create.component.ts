@@ -57,6 +57,7 @@ export class CreateComponent implements OnInit, OnDestroy {
     this.wallet = new Wallet()
     this.loading = false
     this.walletFilename = ''
+
   }
 
   ngOnDestroy() {
@@ -80,7 +81,12 @@ export class CreateComponent implements OnInit, OnDestroy {
       this.uploadedWallet = null
       this.walletDecryptKey = ''
     }
+
     this.state = newState;
+
+    if (newState == 2) {
+      this.zilliqaService.triggerPopup()
+    }
   }
 
   generateWallet() {

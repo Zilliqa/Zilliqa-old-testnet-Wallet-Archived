@@ -40,9 +40,11 @@ export class ZilliqaService {
   nodeData: {};
   userWallet: Wallet
   networkLoading: boolean
+  popupTriggered: boolean
 
   constructor(private http: HttpClient) {
     this.networkLoading = false
+    this.popupTriggered = false
     this.userWallet = new Wallet()
     this.walletData = {
       version: null,
@@ -446,5 +448,12 @@ export class ZilliqaService {
 
   endLoading() {
     setTimeout(() => {this.networkLoading = false}, 0)
+  }
+
+  triggerPopup() {
+    if (!this.popupTriggered) {
+      this.popupTriggered = true
+      $("#modalButton").click()
+    }
   }
 }

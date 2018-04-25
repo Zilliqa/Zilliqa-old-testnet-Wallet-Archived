@@ -39,6 +39,7 @@ export class WalletbaseComponent implements OnInit {
 
   ngOnInit() {
     this.wallet = this.zilliqaService.getWallet()
+    this.zilliqaService.triggerPopup()
   }
 
   revealPrivateKey() {

@@ -91,7 +91,31 @@
 	<router-outlet></router-outlet>
 </div>
 
+<!-- network loading bar -->
 <div *ngIf="this.zilliqaService.networkLoading == true" class="loadingOverlay"></div>
+
+<!-- warning popup -->
+<button id="modalButton" type="button" style="display: none;" data-toggle="modal" data-target="#warningModal"></button>
+
+<div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="warningModalLabel" aria-hidden="false">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="center">WARNING</h2>
+				<button type="button" class="close cursorHand" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<h5 class="warning" style="text-align: center;">Do not send any interim ERC-20 ZIL tokens to this wallet. This is a Zilliqa testnet and is only meant for testing purposes.</h5>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn zil-btn cursorHand" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end warning popup -->
 
 <footer class="footer fixed-bottom">
 	<div class="container-fluid light-gray">
