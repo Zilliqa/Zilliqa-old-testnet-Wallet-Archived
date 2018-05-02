@@ -1,1 +1,14 @@
 @import '../wallet.component.css';
+
+table {
+  table-layout: fixed;
+}
+th {
+  width: 25%;
+}
+th.smaller {
+	width: 15%;
+}
+td {
+  word-wrap: break-word;
+}

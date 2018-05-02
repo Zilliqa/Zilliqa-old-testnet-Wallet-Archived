@@ -24,6 +24,35 @@
 		<p><span>{{wallet.balance}}</span> ZIL</p>
 	</div>
 </div>
+<div *ngIf="zilliqaService.recentTxns && zilliqaService.recentTxns.length > 0">
+	<div class="row mt-2">
+		<div class="col text-center">
+			<h4>Recent Transactions</h4>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-8 ml-auto mr-auto">
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>Transaction ID</th>
+						<th class="smaller">Status</th>
+						<th class="smaller">Amount</th>
+						<th>To Address</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let txn of zilliqaService.recentTxns">
+						<td>{{txn['id']}}</td>
+						<th>{{(txn['confirmed'])? 'Confirmed': 'Pending'}}</th>
+						<td>{{txn['amount']}}</td>
+						<td>{{txn['toAddr']}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
 <div class="row mt-2">
 	<div class="col text-center">
 		<h4>Private Key&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn zil-btn" (click)="revealPrivateKey()">{{revealBtn}}</a></h4>

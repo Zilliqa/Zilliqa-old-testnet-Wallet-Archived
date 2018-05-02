@@ -41,11 +41,13 @@ export class ZilliqaService {
   userWallet: Wallet
   networkLoading: boolean
   popupTriggered: boolean
+  recentTxns: Array<any>
 
   constructor(private http: HttpClient) {
     this.networkLoading = false
     this.popupTriggered = false
     this.userWallet = new Wallet()
+    this.recentTxns = []
     this.walletData = {
       version: null,
       encryptedWalletFile: null
@@ -354,6 +356,12 @@ export class ZilliqaService {
    */
   resetWallet(): void {
     this.userWallet = new Wallet()
+
+    // clear any recentTxns and pending timers
+    for (var i = 0 ; i < this.recentTxns.length ; i++) {
+      clearInterval(this.recentTxns[i].tid)
+    }
+    this.recentTxns = []
   }
 
   /**
@@ -432,6 +440,9 @@ export class ZilliqaService {
       if (err || data.error) {
         deferred.reject(err)
       } else {
+        // add to local cached list
+        that.addLocalTxn({txnId: data.result, amount: txn.amount, toAddr: txn.to})
+
         deferred.resolve({
           txId: data.result
         })
@@ -440,6 +451,43 @@ export class ZilliqaService {
     })
 
     return deferred.promise()
+  }
+
+  addLocalTxn(args) {
+    let that = this
+
+    let tid = setInterval(() => {
+      that.node.getTransaction({txHash: args.txnId}, function(err, data) {
+        if (err || data.result.error || !data.result['ID']) {
+          return
+        } else {
+          let id = data.result['ID']
+          let amount = data.result['amount']
+          let toAddr = data.result['toAddr']
+          console.log(id, amount, toAddr)
+          
+          // get the index of this txn in the recentTxns array
+          let i = that.recentTxns.findIndex(txn => txn.txHash === id)
+          if (i == -1) return
+
+          that.recentTxns[i]['confirmed'] = true
+          that.recentTxns[i]['id'] = id
+          that.recentTxns[i]['amount'] = amount
+          that.recentTxns[i]['toAddr'] = toAddr
+
+          // cancel further checking of this txn
+          clearInterval(that.recentTxns[i].tid)
+        }
+      })
+    }, 5000)
+
+    this.recentTxns.push({
+      id: args.txnId, 
+      tid: tid, 
+      confirmed: false, 
+      amount: args.amount, 
+      toAddr: args.toAddr
+    })
   }
 
   startLoading() {
