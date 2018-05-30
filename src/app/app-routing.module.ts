@@ -18,6 +18,7 @@ import { WalletComponent }      from './wallet/wallet.component';
 import { WalletbaseComponent }      from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent }      from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent }      from './wallet/wallethistory/wallethistory.component';
+import { ContractComponent }      from './wallet/contract/contract.component';
 import { ErrorComponent }      from './error/error.component';
 import { MaintenanceComponent }      from './error/maintenance.component';
 import { AuthGuardService }      from './auth-guard.service';
@@ -30,7 +31,8 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },
       { path: 'base', component: WalletbaseComponent },
-      { path: 'send', component: WalletsendComponent }
+      { path: 'send', component: WalletsendComponent },
+      { path: 'contract', component: ContractComponent },
       // { path: 'history', component: WallethistoryComponent }
     ]
   },

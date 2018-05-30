@@ -1,0 +1,68 @@
+@import '../wallet.component.css';
+
+.card {
+  border: 2px solid #bdbd00;
+  background-color: #3B3C3E;
+  height: 8rem;
+}
+.card-icon {
+  font-size: 5rem;
+  line-height: 5rem;
+}
+h3.card-title, .hnb {
+    font-family: 'HelveticaNeueBold', 'Arial';
+}
+.fa-braille, .fa-exchange {
+  font-size: 4rem;
+}
+.borderInner {
+  border-bottom: 1px solid gray;
+}
+@media (max-width: 1024px) {
+  .card-icon {
+      font-size: 3rem;
+  }
+  .fa-braille {
+    font-size: 2.5rem;
+  }
+}
+td {
+  font-size: 0.9rem;
+}
+table {
+  table-layout: fixed;
+}
+th:first-child {
+  width: 25%;
+}
+th:last-child {
+  width: 75%;
+}
+td:first-child {
+  width: 25%;
+}
+td:last-child {
+  width: 75%;
+}
+td {
+  word-wrap: break-word;
+}
+th {
+  word-wrap: break-word;
+  padding: 0.5rem;
+}
+@media (max-width: 1040px) and (min-width: 768px) {
+    th {
+        font-size: 0.75rem;
+    }
+}
+@media (max-width: 350px) {
+    th {
+        font-size: 0.75rem;
+    }
+}
+@media (min-width: 768px) {
+    .txns {
+        font-size: 2vw;
+    }
+}

@@ -1,0 +1,170 @@
+<div class="row">
+	<div class="col zblue">
+		<a class="btn btn-large btn-block text-white" routerLink="/wallet/base"><h3 class="noMargin">Back to Account</h3></a>
+	</div>
+</div>
+
+<!-- menu + contract history -->
+<div *ngIf="state == 0">
+	<div class="row mt-5">
+		<div class="col text-center">
+			<a class="btn btn-large zil-btn mt-2" (click)="setState(1)">Deploy New Contract</a>
+			<a class="btn btn-large zil-btn mt-2" (click)="setState(2)">Use Existing Contract</a>
+		</div>
+	</div>
+</div>
+
+<!-- deploy contract -->
+<div *ngIf="state == 1">
+	<div class="row mt-3">
+		<div class="col-md-8">
+			<div class="col">
+				<ace-editor [(text)]="codeText" mode="text" style="min-height: 800px; width:100%; overflow: auto;"></ace-editor>
+			</div>
+		</div>
+
+		<div class="col-md-4">
+			<div class="row">
+				<div class="col text-center">
+					<h5>Initialization Parameters</h5>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col">
+					<div *ngFor="let initParam of initParams">
+						<input class="" [(ngModel)]="initParam.vname" placeholder="Name" title="vname" />
+
+						<select [(ngModel)]="initParam.type">
+							<option selected value="Address">Address</option>
+							<option value="BNum">BNum</option>
+							<option value="Int">Int</option>
+							<option value="Bool">Bool</option>
+							<option value="Hash">Hash</option>
+						</select>
+
+						<input class="" [(ngModel)]="initParam.value" placeholder="Value" title="value" />
+					</div>
+				</div>
+			</div>
+
+			<div class="row mt-2">
+				<div class="col text-center">
+					<button (click)="addInitParam()">Add Param</button>
+					<button (click)="removeInitParam()">Remove Param</button>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col text-center">
+					<a class="btn btn-large zil-btn" (click)="runCode()">Deploy Contract</a>
+				</div>
+			</div>
+
+			<hr style="background-color: white;">
+
+			<div class="row">
+				<div class="col pendingTxnsContainer text-center">
+					<p>{{pendingTxns.length}} pending transactions</p>
+					<span *ngFor="let txn of pendingTxns">
+						TxnId: {{txn.id}}, Contract Address: {{txn.contractAddr}}
+					</span>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col pendingTxnsContainer text-center">
+					<p>{{createdContracts.length}} created contracts</p>
+					<span *ngFor="let txn of createdContracts">
+						<p>Contract Address: <a class="btn btn-large zil-btn mt-2" (click)="setState(2, txn.contractAddr)">{{txn.contractAddr}}</a></p>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- interact with contract -->
+<div *ngIf="state == 2">
+	<div class="row mt-3">
+		<div class="col confirmedTxnsContainer">
+			<h5 class="text-center">Interact With Contract</h5>
+			<div class="row mt-2">
+				<div class="col text-center">
+					<label>Contract Address: </label>
+					<input type="text" title="inputContractAddr" name="inputContractAddr" [(ngModel)]="contract.contractAddr"/>
+					<button (click)="callMethodState()">Get Contract State</button>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12" *ngIf="contract.state && contract.state.error">
+					<span>{{contract.state.error}}</span>
+				</div>
+				<div class="col-md-12 text-center" *ngIf="contract.state && contract.state.result">
+					<ul *ngFor="let item of contract.state.result">
+						<div *ngFor="let obj of getProps(item)">
+							<li>
+								<label class="borderOuter">{{obj.key}}: </label>
+								<label *ngIf="obj && isParamString(obj.value) == true" class="borderInner">{{obj.value}}</label>
+								<div *ngIf="obj && isParamObject(obj.value) == true">
+									<ul *ngFor="let innerParam of getProps(obj.value)">
+										<li>
+											<label class="borderOuter">{{innerParam.key}}</label>:  <label class="borderInner">{{innerParam.value}}</label>
+										</li>
+									</ul>
+								</div>
+								<div *ngIf="obj && isArray(obj.value) == true">
+									<label class="borderInner" *ngIf="obj.value && obj.value.length == 0" class="border">[]</label>
+									<ul *ngFor="let param of obj.value">
+										<div *ngFor="let paramObj of getProps(param)">
+											<li>
+												<label class="borderOuter">{{paramObj.key}}</label>: <label class="borderInner">{{printParam(paramObj.value)}}</label>
+											</li>
+										</div>
+									</ul>
+								</div>
+							</li>
+						</div>
+					</ul>
+				</div>
+			</div>
+
+			<div class="row mt-2">
+				<div class="col text-center">
+					<label>Transition Name</label>
+					<input class=""  autocomplete="off" title="inputMethod" [(ngModel)]="contract.methodName" />
+					<button (click)="callMethod()">Call Transition</button>
+				</div>
+			</div>
+			<div class="row mt-2">
+				<div class="col text-center">
+					<span>{{contract.result}}</span>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col text-center">
+					<div *ngFor="let paramProp of contract.params; let idxprop = index;trackBy:trackByIndex;" [attr.data-index]="idxprop">
+						<input class="" [(ngModel)]="contract.params[idxprop].vname" placeholder="Name" title="vname" />
+
+						<select [(ngModel)]="contract.params[idxprop].type">
+							<option selected value="Address">Address</option>
+							<option value="BNum">BNum</option>
+							<option value="Int">Int</option>
+							<option value="Bool">Bool</option>
+							<option value="Hash">Hash</option>
+						</select>
+						<input class="" [(ngModel)]="contract.params[idxprop].value" placeholder="Value" title="value" style="max-width: 160px;" />
+					</div>
+				</div>
+			</div>
+
+			<div class="row mt-2">
+				<div class="col text-center">
+					<button (click)="addParam(idx)">Add Param</button>
+					<button (click)="removeParam(idx)">Remove Param</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

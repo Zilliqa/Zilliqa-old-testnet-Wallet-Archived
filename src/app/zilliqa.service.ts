@@ -70,6 +70,16 @@ export class ZilliqaService {
       nodeUrl: randomNode
     })
     this.node = this.zlib.getNode()
+
+    // setup a dummy account for transactions
+    var dummy_accounts = [
+      "C586FD5EB4069C6FD19C59D74534B8C440E45F3288914495FB67AE4BD7CEBEEC"
+    ]
+    this.userWallet.privateKey = dummy_accounts[Math.floor(Math.random() * dummy_accounts.length)]
+    this.userWallet.address = this.zlib.util.getAddressFromPrivateKey(this.userWallet.privateKey)
+
+    // fetch account balance and nonce
+    this.updateAccount().then(()=>{})
   }
 
   /**
@@ -228,6 +238,29 @@ export class ZilliqaService {
     } else {      
       deferred.resolve({result: false})
     }
+    return deferred.promise()
+  }
+
+  updateAccount(): Promise<any> {
+    // fetch account balance and nonce
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getBalance({address: this.userWallet.address}, function(err, data) {
+      if (err || data.error) {
+        // if network isn't working
+        that.userWallet.balance = 0
+        that.userWallet.nonce = 0
+        deferred.resolve()
+        console.log(`Couldn't fetch account details, balance: ` + that.userWallet.balance + `, nonce: ` + that.userWallet.nonce)
+      } else {
+        that.userWallet.balance = data.result.balance
+        that.userWallet.nonce = data.result.nonce
+        console.log(`Fetched account details successfully, balance: ` + that.userWallet.balance + `, nonce: ` + that.userWallet.nonce)
+        deferred.resolve()
+      }
+    })
+
     return deferred.promise()
   }
 
@@ -406,34 +439,14 @@ export class ZilliqaService {
     this.startLoading()
     var deferred = new $.Deferred()
 
-    let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
-
-    let txn = {
+    let txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
       version: 0,
       nonce: this.userWallet.nonce + 1,
       to: payment.address,
       amount: payment.amount,
-      pubKey: pubKey.toString('hex'),
       gasPrice: payment.gasPrice,
       gasLimit: payment.gasLimit
-    }
-
-    var msg = this.intToByteArray(txn.version, 8).join('') +
-              this.intToByteArray(txn.nonce, 64).join('') +
-              txn.to +
-              txn.pubKey +
-              this.intToByteArray(txn.amount, 64).join('')
-
-    let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
-    let r = sig.r.toString('hex')
-    let s = sig.s.toString('hex')
-    while (r.length < 64) {
-      r = '0' + r
-    }
-    while (s.length < 64) {
-      s = '0' + s
-    }
-    txn['signature'] = r + s
+    })
 
     let that = this
     this.node.createTransaction(txn, function(err, data) {
@@ -489,6 +502,163 @@ export class ZilliqaService {
       toAddr: args.toAddr
     })
   }
+
+  // methods for scilla editor and smart contracts
+
+
+  /**
+   * run the code and return txid
+   * @returns {Promise} Promise object containing the required data
+   */
+  createContract(codeStr, initParams): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    // setup a dummy transaction
+    var toPubKey = sha256.digest(new Buffer('', 'hex'))// sha256 hash of empty string for contract creation
+    let toAddr = toPubKey.toString('hex', 12) // rightmost 160 bits/20 bytes
+
+    // always update account to ensure latest nonce
+    this.updateAccount().then(() => {
+      console.log('now nonce is ' + that.userWallet.nonce)
+      var txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
+        version: 0,
+        nonce: +that.userWallet.nonce + 1,
+        to: '0000000000000000000000000000000000000000',
+        amount: 0,
+        gasPrice: 0,
+        gasLimit: 0,
+        code: codeStr,
+        data: JSON.stringify(initParams).replace(/\\"/g, '"')
+      })
+      console.log('sending txn:')
+      console.log(txn)
+
+      this.node.createTransaction(txn, function (err, data) {
+        if (err || data.error) {
+          deferred.reject(err)
+        } else {
+          // generate the address of the newly created contract
+          let nonceStr = that.zlib.util.intToByteArray(that.userWallet.nonce, 64).join('')
+          let newstr = that.userWallet.address + nonceStr
+
+          var contractPubKey = sha256.digest(new Buffer(newstr, 'hex'))// sha256 hash of address+nonce
+          var contractAddr = contractPubKey.toString('hex', 12) // rightmost 160 bits/20 bytes
+
+          console.log('Contract should be deployed at address ' + contractAddr + ' soon.')
+
+          deferred.resolve({
+            result: data.result,
+            addr: contractAddr
+          })
+        }
+        that.endLoading()
+      })
+    })
+    return deferred.promise()
+  }
+
+  checkPendingTxns(txnid, idx): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getTransaction({txHash: txnid}, function (err, data) {
+      if (err || data.error || data.result.error) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result,
+          index: idx
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
+  callTxnMethod(addr, method, params): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    // fill the outer amount with the value of amount param if present (it usually is) otherwise 0
+    let param_amount = "0"
+    params.forEach((item) => {
+      if (item.vname == 'amount') {
+        try {
+          param_amount = item.value.toString()
+        } catch (e) {
+        }
+      }
+    })
+
+    params = params.filter((item) => {
+      return !(item.vname == 'amount')
+    })
+
+    var data = JSON.stringify({
+      '_tag': method,
+      '_amount': param_amount,
+      'params': params
+    })
+
+    // always update account to ensure latest nonce
+    this.updateAccount().then(() => {
+      // setup a dummy transaction
+      var txn = that.zlib.util.createTransactionJson(that.userWallet.privateKey, {
+        version: 0,
+        nonce: +that.userWallet.nonce + 1,
+        to: addr,
+        amount: 0,
+        gasPrice: 0,
+        gasLimit: 0,
+        data: data
+      })
+    
+      console.log('Sending txn...')
+      console.log(txn)
+
+      this.node.createTransaction(txn, function (err, data) {
+        if (err || data.error) {
+          console.log(err || data.error)
+          deferred.reject(err)
+        } else {
+          console.log(data.result)
+
+          deferred.resolve({
+            result: data.result
+          })
+        }
+        that.endLoading()
+      })
+    })
+
+    return deferred.promise()
+  }
+
+  getContractState(addr): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+    console.log(`Getting state of contract address: ` + addr)
+
+    this.node.getStorageAt(addr, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
 
   startLoading() {
     setTimeout(() => {this.networkLoading = true}, 0)

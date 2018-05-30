@@ -23,6 +23,8 @@ import { WalletComponent } from './wallet/wallet.component';
 import { WalletbaseComponent } from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
+import { ContractComponent } from './wallet/contract/contract.component';
+import { Editorview } from './wallet/contract/editorview.component';
 import { MaintenanceComponent } from './error/maintenance.component';
 import { ErrorComponent } from './error/error.component';
 import { Constants } from './constants';
@@ -30,16 +32,7 @@ import { ZilliqaService } from './zilliqa.service';
 import { AuthGuardService } from './auth-guard.service';
 import { NetworkService } from './network.service';
 import { AppRoutingModule } from './app-routing.module';
-
-Raven
-  .config(Constants.RAVEN_URL)
-  .install();
-
-export class RavenErrorHandler implements ErrorHandler {
-  handleError(err:any) : void {
-    Raven.captureException(err);
-  }
-}
+import { AceEditorModule } from 'ng2-ace-editor';
 
 
 @NgModule({
@@ -51,6 +44,8 @@ export class RavenErrorHandler implements ErrorHandler {
     WalletbaseComponent,
     WalletsendComponent,
     WallethistoryComponent,
+    ContractComponent,
+    Editorview,
     MaintenanceComponent,
     ErrorComponent
   ],
@@ -58,13 +53,13 @@ export class RavenErrorHandler implements ErrorHandler {
     BrowserModule,
     FormsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    AceEditorModule
   ],
   providers: [
     ZilliqaService,
     AuthGuardService,
-    NetworkService,
-    { provide: ErrorHandler, useClass: RavenErrorHandler }
+    NetworkService
   ],
   bootstrap: [AppComponent]
 })
