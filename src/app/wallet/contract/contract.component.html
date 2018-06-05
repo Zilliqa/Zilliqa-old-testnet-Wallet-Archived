@@ -12,6 +12,21 @@
 			<a class="btn btn-large zil-btn mt-2" (click)="setState(2)">Use Existing Contract</a>
 		</div>
 	</div>
+	<div *ngIf="contractHistory.length > 0" class="row mt-5">
+		<div class="col text-center">
+			<h5>Created Contracts</h5>
+		</div>
+	</div>
+
+	<div *ngIf="contractHistory.length > 0" class="row">
+		<div class="col text-center">
+			<ul style="list-style: none;">
+				<li *ngFor="let contract of contractHistory">
+					<a class="btn btn-large zil-btn mt-2" (click)="setState(2, contract.address)">{{ contract.address }}</a>
+				</li>
+			</ul>
+		</div>
+	</div>
 </div>
 
 <!-- deploy contract -->

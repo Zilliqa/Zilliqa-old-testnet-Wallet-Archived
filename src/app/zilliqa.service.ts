@@ -70,16 +70,6 @@ export class ZilliqaService {
       nodeUrl: randomNode
     })
     this.node = this.zlib.getNode()
-
-    // setup a dummy account for transactions
-    var dummy_accounts = [
-      "C586FD5EB4069C6FD19C59D74534B8C440E45F3288914495FB67AE4BD7CEBEEC"
-    ]
-    this.userWallet.privateKey = dummy_accounts[Math.floor(Math.random() * dummy_accounts.length)]
-    this.userWallet.address = this.zlib.util.getAddressFromPrivateKey(this.userWallet.privateKey)
-
-    // fetch account balance and nonce
-    this.updateAccount().then(()=>{})
   }
 
   /**
@@ -315,7 +305,7 @@ export class ZilliqaService {
    */
   createWallet(): string {
     let key = secp256k1.generatePrivateKey()
-
+ 
     // account will be registered only when it receives ZIL
     this.userWallet = {
       address: this.getAddressFromPrivateKey(key),
@@ -559,6 +549,24 @@ export class ZilliqaService {
     return deferred.promise()
   }
 
+  getContractHistory(): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getSmartContracts({address: this.userWallet.address}, function (err, data) {
+      if (err || data.error) {
+        deferred.reject(err)
+      } else {
+         deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
+    return deferred.promise()
+  }
+
   checkPendingTxns(txnid, idx): Promise<any> {
     this.startLoading()
     var deferred = new $.Deferred();
@@ -645,7 +653,7 @@ export class ZilliqaService {
     let that = this
     console.log(`Getting state of contract address: ` + addr)
 
-    this.node.getStorageAt(addr, function (err, data) {
+    this.node.getSmartContractState({address: addr}, function (err, data) {
       if (err || (data.result && data.result.Error)) {
         deferred.reject(err)
       } else {

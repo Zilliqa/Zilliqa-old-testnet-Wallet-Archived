@@ -36,6 +36,8 @@ export class ContractComponent implements OnInit, OnDestroy {
   initParams: any
   pendingTxns: Array<any>
   createdContracts: Array<any>
+  contractHistory: Array<any>
+  methodCheckTimer: any
 
   methodInput: any
   contract: any
@@ -47,6 +49,17 @@ export class ContractComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.initData()
+    this.loadData()
+
+    this.methodCheckTimer = setInterval(() => {
+      if (this.pendingMethodCalls.length > 0) {
+        this.checkPendingMethodCalls()
+      }
+    }, 5000)
+  }
+
+  initData() {
     this.methodInput = {
       addr: '',
       methodName: '',
@@ -55,6 +68,7 @@ export class ContractComponent implements OnInit, OnDestroy {
     }
     this.pendingTxns = []
     this.createdContracts = []
+    this.contractHistory = []
     this.contract = {
       id: '', 
       contractAddr: '',
@@ -78,15 +92,22 @@ export class ContractComponent implements OnInit, OnDestroy {
       {'vname': 'max_block', 'type': 'BNum', 'value': '800'},
       {'vname': 'goal', 'type': 'Int', 'value': '500'}
     ]
+  }
 
-    setInterval(() => {
-      if (this.pendingMethodCalls.length > 0) {
-        this.checkPendingMethodCalls()
-      }
-    }, 5000)
+  loadData() {
+    let that = this
+    this.zilliqaService.getContractHistory().then((data) => {
+      that.contractHistory = data.result
+    })
   }
 
   ngOnDestroy() {
+    for(var i = 0 ; i < this.pendingTxns.length ; i++) {
+      clearInterval(this.pendingTxns[i].tid)
+    }
+    clearInterval(this.methodCheckTimer)
+
+    this.initData()
   }
 
   setState(newState, contractAddr) {

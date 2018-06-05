@@ -1,5 +1,8 @@
 @import '../wallet.component.css';
 
+ul {
+  list-style: none;
+}
 .card {
   border: 2px solid #bdbd00;
   background-color: #3B3C3E;
