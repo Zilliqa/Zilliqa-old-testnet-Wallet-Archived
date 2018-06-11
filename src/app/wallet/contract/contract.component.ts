@@ -39,12 +39,16 @@ export class ContractComponent implements OnInit, OnDestroy {
   contractHistory: Array<any>
   methodCheckTimer: any
 
+  // select dropdown placeholder variable
+  sampleContract: number
+
   methodInput: any
   contract: any
   pendingMethodCalls: Array<any>
 
   constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {
-    this.codeText = Constants.SAMPLE_SCILLA_CODE
+    this.codeText = Constants.SAMPLE_SCILLA_CODES[0]
+    this.sampleContract = 0
     this.state = 0
   }
 
@@ -73,18 +77,13 @@ export class ContractComponent implements OnInit, OnDestroy {
       id: '', 
       contractAddr: '',
       methodName: '',
+      amount: 0,
       params:
-      [{
-        'vname': 'sender',
-        'type': 'Address',
-        'value': this.zilliqaService.userWallet.address
-      }, {
-        'vname': 'amount',
-        'type': 'Int',
-        'value': 0
-      }],
+      [],
       result: '',
-      state: {}
+      state: {},
+      code: {},
+      ABI: {}
     }
     this.pendingMethodCalls = []
     this.initParams = [
@@ -113,7 +112,10 @@ export class ContractComponent implements OnInit, OnDestroy {
   setState(newState, contractAddr) {
     // optional arg
     if (contractAddr) {
+      let that = this
       this.contract.contractAddr = contractAddr
+
+      this.refreshContract()
     }
 
     this.state = newState
@@ -167,7 +169,7 @@ export class ContractComponent implements OnInit, OnDestroy {
     console.log(`Deployed contract, waiting for confirmation...`)
   }
 
-  addParam(idx) {
+  addParam() {
     this.contract.params.push({
       'vname': '',
       'type': '',
@@ -175,11 +177,11 @@ export class ContractComponent implements OnInit, OnDestroy {
     })
   }
 
-  removeParam(idx) {
+  removeParam() {
     this.contract.params.pop()
   }
 
-  addInitParam(idx) {
+  addInitParam() {
     this.initParams.push({
       'vname': '',
       'type': '',
@@ -187,8 +189,22 @@ export class ContractComponent implements OnInit, OnDestroy {
     })
   }
 
-  removeInitParam(idx) {
+  removeInitParam() {
     this.initParams.pop()
+  }
+
+  invalidAmount() {
+    // true if blank or negative or higher than wallet balance - 0 is allowed
+    return (this.contract.amount == null) || (this.contract.amount < 0) || (this.contract.amount > this.zilliqaService.userWallet.balance)
+  }
+
+  checkBalance() {
+    // false if balance < 50
+    return (this.zilliqaService.userWallet.balance < 50)
+  }
+
+  updateSampleContract(newContract) {
+    this.codeText = Constants.SAMPLE_SCILLA_CODES[newContract]
   }
 
   getProps(obj) {
@@ -220,12 +236,13 @@ export class ContractComponent implements OnInit, OnDestroy {
   }
 
   callMethod() {
-    var contractAddr = this.contract['contractAddr']
-    var method = this.contract['methodName']
-    var params = this.contract['params']
+    var contractAddr = this.contract.contractAddr
+    var method = this.contract.methodName
+    var params = this.contract.params
+    var amount = this.contract.amount
 
     let that = this
-    this.zilliqaService.callTxnMethod(contractAddr, method, params).then((data) => {
+    this.zilliqaService.callTxnMethod(contractAddr, method, amount, params).then((data) => {
       that.contract.result = that.contract.methodName + " call pending, txnid: " + data.result
       that.pendingMethodCalls.push({callName: that.contract.methodName, txnid: data.result, count: 0})
     })
@@ -258,19 +275,92 @@ export class ContractComponent implements OnInit, OnDestroy {
     }
   }
 
-  callMethodState() {
-    console.log(this.contract)
+  refreshContract() {
+    this.refreshContractCode()
+    this.refreshContractState()
+  }
+
+  refreshContractState() {
     var contractAddr = this.contract['contractAddr']
-    var method = this.contract['methodName']
-    var params = this.contract['params']
 
     let that = this
     this.zilliqaService.getContractState(contractAddr).then((data) => {
       that.contract.state.error = null
       that.contract.state.result = data.result
     }).catch((err) => {
-      that.contract.state.error = "State call failed: " + JSON.stringify(err)
+      that.contract.state.error = "Contract state call failed: " + JSON.stringify(err)
       that.contract.state.result = null
     })
+  }
+
+  refreshContractCode() {
+    var contractAddr = this.contract['contractAddr']
+
+    let that = this
+    this.zilliqaService.getContractCode(contractAddr).then((data) => {
+      that.contract.code.error = null
+      that.contract.code.result = data.result
+
+      // parse the code to get the selectedTransitions
+      that.contract.ABI.transitions = that.parseTransitions(that.contract.code.result)
+      console.log(that.contract.ABI.transitions)
+    }).catch((err) => {
+      that.contract.code.error = "Contract code call failed: " + JSON.stringify(err)
+      that.contract.code.result = null
+      that.contract.ABI = {}
+    })
+  }
+
+  parseTransitions(str) {
+    var list = []
+    var offset
+    try {
+      while (offset = str.match(/\ntransition /)) {
+        // end if no more matches
+        if (!offset) break
+
+        // get the string from the start of method name
+        var str2 = str.substr(offset.index + 11)
+
+        // get method name
+        var offset2 = str2.match(/\(/)
+        var methodname = str2.substr(0, offset2.index)
+
+        // get parameter string
+        var offset3 = str2.match(/\)/)
+        var parameterStr = str2.substr(offset2.index+1, offset3.index-offset2.index-1)
+
+        // split parameter string into pairs
+        var params = parameterStr.split(',')
+        var finalParams = []
+        params.map(function(param) {
+          var name = param.split(':')[0]
+          var type = param.split(':')[1]
+          finalParams.push({'vname': name.trim(), 'type': type.trim(), 'value': ''})
+        })
+
+        list.push({
+          methodName: methodname.trim(),
+          params: finalParams
+        })
+        // trim the string past the already matched transition
+        str = str2
+      }
+    } catch (e) {
+      console.log('Error in parsing transitions!')
+      console.log(e)
+      return []
+    }
+
+    return list
+  }
+
+  updateTransition(methodName) {
+    let i = this.contract.ABI.transitions.findIndex(item => item.methodName === methodName)
+    if (i == -1) return
+    let newTransition = this.contract.ABI.transitions[i]
+
+    this.contract.methodName = newTransition.methodName
+    this.contract.params = newTransition.params.slice()
   }
 }

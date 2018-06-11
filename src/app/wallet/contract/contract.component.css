@@ -69,3 +69,6 @@ th {
         font-size: 2vw;
     }
 }
+.noHover {
+  background-color: transparent !important;
+}

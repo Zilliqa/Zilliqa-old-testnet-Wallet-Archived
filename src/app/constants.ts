@@ -12,7 +12,7 @@ export class Constants {
 
   public static RAVEN_URL = 'https://43ce6ef6087c428ea8604285817fc9e0@sentry.io/1053004'
 
-  public static SAMPLE_SCILLA_CODE = `(***************************************************)
+  public static SAMPLE_SCILLA_CODES = [`(***************************************************)
 (*               Associated library                *)
 (***************************************************)
 library Crowdfunding
@@ -196,6 +196,8 @@ transition ClaimBack (sender: Address)
       end
     end
   end  
-end`
+end`,
+`sample 2`,
+`sample 3`]
 
 }

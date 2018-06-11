@@ -33,8 +33,22 @@
 <div *ngIf="state == 1">
 	<div class="row mt-3">
 		<div class="col-md-8">
-			<div class="col">
-				<ace-editor [(text)]="codeText" mode="text" style="min-height: 800px; width:100%; overflow: auto;"></ace-editor>
+			<div class="row">
+				<div class="col">
+					<label>Select Sample Contract</label>
+
+					<select [(ngModel)]="sampleContract" (change)="updateSampleContract($event.target.value)" class="custom-select mr-2 small-text">
+						<option selected value="0">Crowdfund</option>
+						<option value="1">Sample 2</option>
+						<option value="2">Sample 3</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="row mt-1">
+				<div class="col">
+					<ace-editor [(text)]="codeText" mode="text" style="min-height: 800px; width:100%; overflow: auto;"></ace-editor>
+				</div>
 			</div>
 		</div>
 
@@ -46,10 +60,10 @@
 			</div>
 			<div class="row">
 				<div class="col">
-					<div *ngFor="let initParam of initParams">
-						<input class="" [(ngModel)]="initParam.vname" placeholder="Name" title="vname" />
+					<div *ngFor="let initParam of initParams" class="mt-2 text-center">
+						<input class="zil-btn noHover" [(ngModel)]="initParam.vname" placeholder="Name" title="vname" />
 
-						<select [(ngModel)]="initParam.type">
+						<select [(ngModel)]="initParam.type" class="zil-btn noHover">
 							<option selected value="Address">Address</option>
 							<option value="BNum">BNum</option>
 							<option value="Int">Int</option>
@@ -57,25 +71,37 @@
 							<option value="Hash">Hash</option>
 						</select>
 
-						<input class="" [(ngModel)]="initParam.value" placeholder="Value" title="value" />
+						<input class="zil-btn noHover" [(ngModel)]="initParam.value" placeholder="Value" title="value" />
 					</div>
 				</div>
 			</div>
 
 			<div class="row mt-2">
 				<div class="col text-center">
-					<button (click)="addInitParam()">Add Param</button>
-					<button (click)="removeInitParam()">Remove Param</button>
+					<button class="btn zil-btn cursorHand" (click)="addInitParam()">Add Param</button>
+					<button class="btn zil-btn cursorHand" (click)="removeInitParam()">Remove Param</button>
 				</div>
 			</div>
 
 			<div class="row mt-3">
 				<div class="col text-center">
-					<a class="btn btn-large zil-btn" (click)="runCode()">Deploy Contract</a>
+					<button class="btn btn-large zil-btn" [disabled]="checkBalance()" (click)="runCode()">Deploy Contract</button>
 				</div>
 			</div>
 
-			<hr style="background-color: white;">
+			<div class="row mt-1">
+				<div class="col ml-auto mr-auto text-center">
+					<p>(current balance: {{zilliqaService.userWallet.balance}} ZIL, gas cost: 50 ZIL)</p>
+				</div>
+			</div>
+
+			<div class="row mt-2" *ngIf="checkBalance()">
+				<div class="col ml-auto mr-auto">
+					<div class="alert alert-warning" role="alert">
+						<strong>Error!</strong> You need atleast 50 ZILs in your wallet to deploy a contract.
+					</div>
+				</div>
+			</div>
 
 			<div class="row">
 				<div class="col pendingTxnsContainer text-center">
@@ -105,81 +131,158 @@
 			<h5 class="text-center">Interact With Contract</h5>
 			<div class="row mt-2">
 				<div class="col text-center">
-					<label>Contract Address: </label>
-					<input type="text" title="inputContractAddr" name="inputContractAddr" [(ngModel)]="contract.contractAddr"/>
-					<button (click)="callMethodState()">Get Contract State</button>
+					<label class="align-bottom">Contract Address: </label>
+
+					<span class="input" style="max-width: 25rem;">
+						<input [(ngModel)]="contract.contractAddr" type="text" id="input-contractAddr" class="input__field input__field--madoka" title="inputContractAddr">
+						<label class="input__label input__label--madoka" for="input-contractAddr">
+							<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+								<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+							</svg>
+						</label>
+					</span>
+
+					<button class="btn zil-btn cursorHand align-bottom" (click)="refreshContract()">Refresh</button>
 				</div>
 			</div>
 
-			<div class="row">
-				<div class="col-md-12" *ngIf="contract.state && contract.state.error">
-					<span>{{contract.state.error}}</span>
+			<div class="row mt-2">
+				<div class="col-md-6 text-center" *ngIf="contract.code">
+					<h3>Contract Code</h3>
+	
+					<div class="col-md-6 text-center mt-2" *ngIf="contract.code && contract.code.error">
+						<span>{{contract.code.error}}</span>
+					</div>
+
+					<div *ngIf="contract.code && contract.code.result">
+						<ace-editor [(text)]="contract.code.result" readOnly="true" style="min-height: 250px; width:100%; overflow: auto;"></ace-editor>
+					</div>
 				</div>
-				<div class="col-md-12 text-center" *ngIf="contract.state && contract.state.result">
-					<ul *ngFor="let item of contract.state.result">
-						<div *ngFor="let obj of getProps(item)">
-							<li>
-								<label class="borderOuter">{{obj.key}}: </label>
-								<label *ngIf="obj && isParamString(obj.value) == true" class="borderInner">{{obj.value}}</label>
-								<div *ngIf="obj && isParamObject(obj.value) == true">
-									<ul *ngFor="let innerParam of getProps(obj.value)">
-										<li>
-											<label class="borderOuter">{{innerParam.key}}</label>:  <label class="borderInner">{{innerParam.value}}</label>
-										</li>
-									</ul>
-								</div>
-								<div *ngIf="obj && isArray(obj.value) == true">
-									<label class="borderInner" *ngIf="obj.value && obj.value.length == 0" class="border">[]</label>
-									<ul *ngFor="let param of obj.value">
-										<div *ngFor="let paramObj of getProps(param)">
+
+				<div class="col-md-6 text-center mt-2">
+					<h3>Contract State</h3>
+	
+					<div class="col-md-6 text-center mt-2" *ngIf="contract.state && contract.state.error">
+						<span>{{contract.state.error}}</span>
+					</div>
+
+					<div *ngIf="contract.state && contract.state.result">
+						<ul *ngFor="let item of contract.state.result">
+							<div *ngFor="let obj of getProps(item)">
+								<li>
+									<label class="borderOuter">{{obj.key}}: </label>
+									<label *ngIf="obj && isParamString(obj.value) == true" class="borderInner">{{obj.value}}</label>
+									<div *ngIf="obj && isParamObject(obj.value) == true">
+										<ul *ngFor="let innerParam of getProps(obj.value)">
 											<li>
-												<label class="borderOuter">{{paramObj.key}}</label>: <label class="borderInner">{{printParam(paramObj.value)}}</label>
+												<label class="borderOuter">{{innerParam.key}}</label>:  <label class="borderInner">{{innerParam.value}}</label>
 											</li>
-										</div>
-									</ul>
-								</div>
-							</li>
-						</div>
-					</ul>
+										</ul>
+									</div>
+									<div *ngIf="obj && isArray(obj.value) == true">
+										<label class="borderInner" *ngIf="obj.value && obj.value.length == 0" class="border">[]</label>
+										<ul *ngFor="let param of obj.value">
+											<div *ngFor="let paramObj of getProps(param)">
+												<li>
+													<label class="borderOuter">{{paramObj.key}}</label>: <label class="borderInner">{{printParam(paramObj.value)}}</label>
+												</li>
+											</div>
+										</ul>
+									</div>
+								</li>
+							</div>
+						</ul>
+					</div>
 				</div>
 			</div>
 
-			<div class="row mt-2">
+			<div *ngIf="contract.ABI.transitions" class="row mt-4">
 				<div class="col text-center">
-					<label>Transition Name</label>
-					<input class=""  autocomplete="off" title="inputMethod" [(ngModel)]="contract.methodName" />
-					<button (click)="callMethod()">Call Transition</button>
+					<label class="align-bottom">Choose Method: </label>
+					<select [(ngModel)]="selectedTransition" style="vertical-align: bottom;" (change)="updateTransition($event.target.value)" class="custom-select mr-2 small-text">
+						<option *ngFor="let transition of contract.ABI.transitions" [value]="transition.methodName">{{transition.methodName}}</option>
+					</select>
 				</div>
 			</div>
-			<div class="row mt-2">
+
+			<div *ngIf="contract.result" class="row mt-2">
 				<div class="col text-center">
 					<span>{{contract.result}}</span>
 				</div>
 			</div>
 
-			<div class="row">
+			<div class="row mt-2">
 				<div class="col text-center">
-					<div *ngFor="let paramProp of contract.params; let idxprop = index;trackBy:trackByIndex;" [attr.data-index]="idxprop">
-						<input class="" [(ngModel)]="contract.params[idxprop].vname" placeholder="Name" title="vname" />
+					<label class="align-bottom">Transition Name: </label>
 
-						<select [(ngModel)]="contract.params[idxprop].type">
+					<span *ngIf="contract.ABI.transitions" class="input" style="max-width: 25rem;">
+						<input [(ngModel)]="contract.methodName" type="text" id="input-inputMethod" title="inputMethod" class="input__field input__field--madoka">
+						<label class="input__label input__label--madoka" for="input-inputMethod">
+							<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+								<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+							</svg>
+						</label>
+					</span>
+				</div>
+			</div>
+
+			<div class="row mt-2">
+				<div class="col text-center">
+					<label class="align-bottom">Amount:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label>
+
+					<span *ngIf="contract.ABI.transitions" class="input" style="max-width: 25rem;">
+						<input [(ngModel)]="contract.amount" type="number" id="input-amount" title="amount" class="input__field input__field--madoka">
+						<label class="input__label input__label--madoka" for="input-amount">
+							<svg class="graphic graphic--madoka" width="100%" height="100%" viewBox="0 0 404 77" preserveAspectRatio="none">
+								<path d="m0,0l404,0l0,77l-404,0l0,-77z"></path>
+							</svg>
+						</label>
+					</span>
+				</div>
+			</div>
+			<div class="row mt-1">
+				<div class="col-md-6 ml-auto mr-auto text-center">
+					<p>(current balance: {{zilliqaService.userWallet.balance}} ZIL, gas cost: 10 ZIL)</p>
+				</div>
+			</div>
+
+			<div class="row mt-2" *ngIf="invalidAmount()">
+				<div class="col-md-6 ml-auto mr-auto">
+					<div class="alert alert-warning" role="alert">
+						<strong>Error!</strong> The amount must be positive and less than your wallet balance.
+					</div>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col text-center">
+					<div *ngFor="let paramProp of contract.params; let idxprop = index;trackBy:trackByIndex;" [attr.data-index]="idxprop" class="mt-2">
+						<input class="zil-btn noHover" [(ngModel)]="contract.params[idxprop].vname" placeholder="Name" title="vname" />
+
+						<select [(ngModel)]="contract.params[idxprop].type" class="zil-btn noHover">
 							<option selected value="Address">Address</option>
 							<option value="BNum">BNum</option>
 							<option value="Int">Int</option>
 							<option value="Bool">Bool</option>
 							<option value="Hash">Hash</option>
 						</select>
-						<input class="" [(ngModel)]="contract.params[idxprop].value" placeholder="Value" title="value" style="max-width: 160px;" />
+						<input class="zil-btn noHover" [(ngModel)]="contract.params[idxprop].value" placeholder="Value" title="value" style="max-width: 160px;" />
 					</div>
 				</div>
 			</div>
 
-			<div class="row mt-2">
+			<div class="row mt-3">
 				<div class="col text-center">
-					<button (click)="addParam(idx)">Add Param</button>
-					<button (click)="removeParam(idx)">Remove Param</button>
+					<button class="btn zil-btn cursorHand" (click)="addParam()">Add Param</button>
+					<button class="btn zil-btn cursorHand" (click)="removeParam()">Remove Param</button>
 				</div>
 			</div>
+
+			<div class="row mt-4">
+				<div class="col text-center">
+					<button class="btn zil-btn cursorHand align-bottom" [disabled]="invalidAmount()" (click)="callMethod()">Call Transition</button>
+				</div>
+			</div>	
 		</div>
 	</div>
 </div>
