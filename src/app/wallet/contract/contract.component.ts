@@ -300,12 +300,14 @@ export class ContractComponent implements OnInit, OnDestroy {
     this.zilliqaService.getContractCode(contractAddr).then((data) => {
       that.contract.code.error = null
       that.contract.code.result = data.result
+      that.codeText = that.contract.code.result
 
       // parse the code to get the selectedTransitions
       that.contract.ABI.transitions = that.parseTransitions(that.contract.code.result)
       console.log(that.contract.ABI.transitions)
     }).catch((err) => {
       that.contract.code.error = "Contract code call failed: " + JSON.stringify(err)
+      that.codeText = that.contract.code.error
       that.contract.code.result = null
       that.contract.ABI = {}
     })
