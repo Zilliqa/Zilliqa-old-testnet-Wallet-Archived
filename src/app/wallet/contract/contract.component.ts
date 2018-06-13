@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { ZilliqaService } from '../../zilliqa.service';
 import { NetworkService } from '../../network.service';
 import { Editorview } from './editorview.component';
+import { Jsonview } from './jsonview.component';
 import { Constants } from '../../constants';
 
 
@@ -33,7 +34,6 @@ export class ContractComponent implements OnInit, OnDestroy {
   state: number
 
   codeText: string
-  initParams: any
   pendingTxns: Array<any>
   createdContracts: Array<any>
   contractHistory: Array<any>
@@ -86,11 +86,6 @@ export class ContractComponent implements OnInit, OnDestroy {
       ABI: {}
     }
     this.pendingMethodCalls = []
-    this.initParams = [
-      {'vname': 'owner', 'type': 'Address', 'value': '490af4a007ce3d53d568ff335afa037affa1ce65'},
-      {'vname': 'max_block', 'type': 'BNum', 'value': '800'},
-      {'vname': 'goal', 'type': 'Int', 'value': '500'}
-    ]
   }
 
   loadData() {
@@ -125,11 +120,22 @@ export class ContractComponent implements OnInit, OnDestroy {
     let that = this
     console.log(`Running Contract Creation...`)
 
-    this.zilliqaService.createContract(this.codeText, this.initParams).then((data) => {
+    this.zilliqaService.createContract(this.codeText, this.contract.ABI.initParams).then((data) => {
       that.newContractCreated(data.result, data.addr)
     }).catch((err) => {
 
     })
+  }
+
+  checkCode() {
+    let that = this
+    console.log(`Running Contract Check...`)
+
+    this.contract.ABI.initParams = that.parseInitParams(this.codeText)
+
+    // this.zilliqaService.checkContract(this.codeText, this.contract.ABI.initParams).then((data) => {
+    // }).catch((err) => {
+    // })
   }
 
   newContractCreated(txnid, newContractAddr) {
@@ -179,18 +185,6 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   removeParam() {
     this.contract.params.pop()
-  }
-
-  addInitParam() {
-    this.initParams.push({
-      'vname': '',
-      'type': '',
-      'value': ''
-    })
-  }
-
-  removeInitParam() {
-    this.initParams.pop()
   }
 
   invalidAmount() {
@@ -304,7 +298,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
       // parse the code to get the selectedTransitions
       that.contract.ABI.transitions = that.parseTransitions(that.contract.code.result)
-      console.log(that.contract.ABI.transitions)
+      that.contract.ABI.initParams = that.parseInitParams(that.contract.code.result)
     }).catch((err) => {
       that.contract.code.error = "Contract code call failed: " + JSON.stringify(err)
       that.codeText = that.contract.code.error
@@ -315,13 +309,15 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   parseTransitions(str) {
     var list = []
+    str = this.removeComments(str)
+    
     var offset
     try {
       while (offset = str.match(/\ntransition /)) {
         // end if no more matches
         if (!offset) break
 
-        // get the string from the start of method name
+        // skip past the 'transition ' text
         var str2 = str.substr(offset.index + 11)
 
         // get method name
@@ -333,8 +329,9 @@ export class ContractComponent implements OnInit, OnDestroy {
         var parameterStr = str2.substr(offset2.index+1, offset3.index-offset2.index-1)
 
         // split parameter string into pairs
-        var params = parameterStr.split(',')
+        var params = parameterStr.split(',').filter(String)
         var finalParams = []
+
         params.map(function(param) {
           var name = param.split(':')[0]
           var type = param.split(':')[1]
@@ -349,12 +346,70 @@ export class ContractComponent implements OnInit, OnDestroy {
         str = str2
       }
     } catch (e) {
-      console.log('Error in parsing transitions!')
+      console.log('Error in parsing transitions.')
       console.log(e)
       return []
     }
 
     return list
+  }
+
+  parseInitParams(str) {
+    var list = []
+    str = this.removeComments(str)
+
+    try {
+      var offset = str.match(/\ncontract /)
+      // skip past the 'contract ' text
+      var str2 = str.substr(offset.index + 9)
+
+      // get contract name
+      var offset2 = str2.match(/\(/)
+      var contractname = str2.substr(0, offset2.index)
+
+      // get parameter string
+      var offset3 = str2.match(/\)/)
+      var parameterStr = str2.substr(offset2.index+1, offset3.index-offset2.index-1)
+
+      // split parameter string into pairs
+      var params = parameterStr.split(',').filter(String)
+      var finalParams = []
+
+      params.map(function(param) {
+        var name = param.split(':')[0]
+        var type = param.split(':')[1]
+        list.push({'vname': name.trim(), 'type': type.trim(), 'value': ''})
+      })
+    } catch (e) {
+      console.log('Error in parsing initialization params.')
+      console.log(e)
+      return []
+    }
+
+    return list
+  }
+
+  removeComments(str) {
+    var originalStr = str
+    var commentStart
+
+    try {
+      // loop till all comments beginning with '(*' are removed
+      while (commentStart = str.match(/\(\*/)) {
+        // get the string till comment start
+        var str1 = str.substr(0, commentStart.index)
+
+        // get the string after comment start
+        var str2 = str.substr(commentStart.index)
+        var commentEnd = str2.match(/\*\)/)
+        var str3 = str2.substr(commentEnd.index + 2)
+
+        str = str1 + str3
+      }
+    } catch (e) {
+      return originalStr
+    }
+    return str
   }
 
   updateTransition(methodName) {
