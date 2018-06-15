@@ -657,22 +657,37 @@ export class ZilliqaService {
     var deferred = new $.Deferred();
     let that = this
 
-    // this.node.getSmartContractCode({address: addr}, function (err, data) {
-    //   if (err || (data.result && data.result.Error)) {
-    //     deferred.reject(err)
-    //   } else {
-    //     deferred.resolve({
-    //       result: data.result
-    //     })
-    //   }
-    //   that.endLoading()
-    // })
-    var ss = Constants.SAMPLE_SCILLA_CODES[2]
-    deferred.resolve({
-      result: ss
+    this.node.getSmartContractCode({address: addr}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
     })
 
     this.endLoading()
+
+    return deferred.promise()
+  }
+
+  checkContractCode(code): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.checkCode({code: code}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data
+        })
+      }
+      that.endLoading()
+    })
 
     return deferred.promise()
   }

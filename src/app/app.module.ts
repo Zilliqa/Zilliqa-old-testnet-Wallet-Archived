@@ -24,7 +24,6 @@ import { WalletbaseComponent } from './wallet/walletbase/walletbase.component';
 import { WalletsendComponent } from './wallet/walletsend/walletsend.component';
 import { WallethistoryComponent } from './wallet/wallethistory/wallethistory.component';
 import { ContractComponent } from './wallet/contract/contract.component';
-import { Editorview } from './wallet/contract/editorview.component';
 import { Jsonview } from './wallet/contract/jsonview.component';
 import { MaintenanceComponent } from './error/maintenance.component';
 import { ErrorComponent } from './error/error.component';
@@ -46,7 +45,6 @@ import { AceEditorModule } from 'ng2-ace-editor';
     WalletsendComponent,
     WallethistoryComponent,
     ContractComponent,
-    Editorview,
     Jsonview,
     MaintenanceComponent,
     ErrorComponent

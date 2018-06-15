@@ -21,6 +21,11 @@ h3.card-title, .hnb {
 .borderInner {
   border-bottom: 1px solid gray;
 }
+.alert-success {
+  color: #6FBDBA;
+  background-color: transparent;
+  border-color: #58ca58;
+}
 @media (max-width: 1024px) {
   .card-icon {
       font-size: 3rem;

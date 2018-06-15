@@ -20,7 +20,7 @@
 
 		<div class="row mt-1">
 			<div class="col">
-				<ace-editor [(text)]="codeText" [readOnly]="state == 2" mode="ocaml" style="min-height: calc(100vh - 200px); width:100%; overflow: auto;"></ace-editor>
+				<ace-editor #editor [(text)]="codeText" [readOnly]="state == 2" mode="ocaml" style="min-height: calc(100vh - 200px); width:100%; overflow: auto;"></ace-editor>
 			</div>
 		</div>
 	</div>
@@ -62,12 +62,20 @@
 					</div>
 				</div>
 
+				<div class="row mt-2" *ngIf="codeError.text != null">
+					<div class="col ml-auto mr-auto">
+						<div class="alert" [ngClass]="{'alert-success': codeError.text.indexOf('success') > -1, 'alert-warning': codeError.text.indexOf('Error') > -1}">
+							<strong>{{codeError.text}}</strong>
+						</div>
+					</div>
+				</div>
+
 				<div class="row mt-1">
 					<div class="col ml-auto mr-auto text-center">
 						<p>(current balance: {{zilliqaService.userWallet.balance}} ZIL, gas cost: 50 ZIL)</p>
 					</div>
 				</div>
-				
+
 				<div *ngIf="contract.ABI.initParams">
 					<div class="row">
 						<div class="col text-center">

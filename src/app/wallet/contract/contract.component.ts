@@ -9,15 +9,16 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed. 
 
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ZilliqaService } from '../../zilliqa.service';
 import { NetworkService } from '../../network.service';
-import { Editorview } from './editorview.component';
 import { Jsonview } from './jsonview.component';
 import { Constants } from '../../constants';
+import * as $ from 'jquery';
 
+declare var ace:any
 
 @Component({
   selector: 'app-contract',
@@ -45,6 +46,12 @@ export class ContractComponent implements OnInit, OnDestroy {
   methodInput: any
   contract: any
   pendingMethodCalls: Array<any>
+
+  @ViewChild('editor') editor
+  codeError: {
+    line: any,
+    text: string
+  }
 
   constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {
     this.codeText = Constants.SAMPLE_SCILLA_CODES[0]
@@ -86,6 +93,10 @@ export class ContractComponent implements OnInit, OnDestroy {
       ABI: {}
     }
     this.pendingMethodCalls = []
+    this.codeError = {
+      line: null,
+      text: null
+    }
   }
 
   loadData() {
@@ -105,6 +116,8 @@ export class ContractComponent implements OnInit, OnDestroy {
   }
 
   setState(newState, contractAddr) {
+    this.clearEditor()
+
     // optional arg
     if (contractAddr) {
       let that = this
@@ -127,15 +140,49 @@ export class ContractComponent implements OnInit, OnDestroy {
     })
   }
 
+  clearEditor() {
+    this.editor.getEditor().getSession().clearAnnotations()
+    this.editor.getEditor().getSession().removeMarker(this.codeError.line)
+
+    this.codeError = {
+      line: null,
+      text: null
+    }
+  }
+
   checkCode() {
     let that = this
-    console.log(`Running Contract Check...`)
 
+    this.clearEditor()
     this.contract.ABI.initParams = that.parseInitParams(this.codeText)
+    
+    this.zilliqaService.checkContractCode(this.codeText).then((data) => {
+      if (data.result.result == 'success') {
+        that.codeError.text = 'Code checked successfully.'
+      } else if (data.result.result == 'error') {
+        let text = data.result.message
 
-    // this.zilliqaService.checkContract(this.codeText, this.contract.ABI.initParams).then((data) => {
-    // }).catch((err) => {
-    // })
+        // split error message('line x, position y') first by comma, then trim and split by space
+        let line = text.split(',')[0].trim().split(' ')[1]
+        let col = text.split(',')[1].trim().split(' ')[1]
+        line = parseInt(line) - 1
+        col = parseInt(col)
+
+        // set editor highlight and annotation
+        var Range = ace.require('ace/range').Range
+        that.codeError.line = that.editor.getEditor().getSession().addMarker(new Range(line, 0, line, col), 'ace_highlight-marker', 'fullLine')
+        
+        that.codeError.text = 'Syntax Error, column ' + col
+        that.editor.getEditor().getSession().setAnnotations([{
+          row: line,
+          column: col,
+          text: that.codeError.text,
+          type: 'error'
+        }])
+        
+      }
+    }).catch((err) => {
+    })
   }
 
   newContractCreated(txnid, newContractAddr) {
