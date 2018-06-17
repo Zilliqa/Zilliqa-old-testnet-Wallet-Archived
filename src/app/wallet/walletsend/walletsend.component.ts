@@ -37,7 +37,7 @@ export class WalletsendComponent implements OnInit {
   payment: Payment
   recaptchaFilled: boolean
 
-  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) { 
+  constructor(public zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) { 
     this.state = 0
     this.pendingTxId = null
     this.wallet = new Wallet()

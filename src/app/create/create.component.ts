@@ -57,7 +57,6 @@ export class CreateComponent implements OnInit, OnDestroy {
     this.wallet = new Wallet()
     this.loading = false
     this.walletFilename = ''
-
   }
 
   ngOnDestroy() {

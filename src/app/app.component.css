@@ -67,6 +67,12 @@ a {
 .green-connected {
   background-color: green;
 }
+.info-box {
+  border: 1px solid #49c1bf;
+  padding: 1rem;
+  border-radius: 3px;
+  word-wrap: break-word;
+}
 table a{
   color: #6FBDBA;
 }

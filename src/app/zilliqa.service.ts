@@ -41,11 +41,13 @@ export class ZilliqaService {
   userWallet: Wallet
   networkLoading: boolean
   popupTriggered: boolean
+  recentTxns: Array<any>
 
   constructor(private http: HttpClient) {
     this.networkLoading = false
     this.popupTriggered = false
     this.userWallet = new Wallet()
+    this.recentTxns = []
     this.walletData = {
       version: null,
       encryptedWalletFile: null
@@ -229,6 +231,29 @@ export class ZilliqaService {
     return deferred.promise()
   }
 
+  updateAccount(): Promise<any> {
+    // fetch account balance and nonce
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getBalance({address: this.userWallet.address}, function(err, data) {
+      if (err || data.error) {
+        // if network isn't working
+        that.userWallet.balance = 0
+        that.userWallet.nonce = 0
+        deferred.resolve()
+        console.log(`Couldn't fetch account details, balance: ` + that.userWallet.balance + `, nonce: ` + that.userWallet.nonce)
+      } else {
+        that.userWallet.balance = data.result.balance
+        that.userWallet.nonce = data.result.nonce
+        console.log(`Fetched account details successfully, balance: ` + that.userWallet.balance + `, nonce: ` + that.userWallet.nonce)
+        deferred.resolve()
+      }
+    })
+
+    return deferred.promise()
+  }
+
   /**
    * get the account details of an account using its public address
    * @param {string} address - the public address of the account
@@ -279,8 +304,8 @@ export class ZilliqaService {
    * @returns {string} the newly created private key
    */
   createWallet(): string {
-    let key = secp256k1.generatePrivateKey()
-
+    let key = new Buffer('C586FD5EB4069C6FD19C59D74534B8C440E45F3288914495FB67AE4BD7CEBEEC', 'hex')//secp256k1.generatePrivateKey()
+ 
     // account will be registered only when it receives ZIL
     this.userWallet = {
       address: this.getAddressFromPrivateKey(key),
@@ -354,6 +379,12 @@ export class ZilliqaService {
    */
   resetWallet(): void {
     this.userWallet = new Wallet()
+
+    // clear any recentTxns and pending timers
+    for (var i = 0 ; i < this.recentTxns.length ; i++) {
+      clearInterval(this.recentTxns[i].tid)
+    }
+    this.recentTxns = []
   }
 
   /**
@@ -398,40 +429,23 @@ export class ZilliqaService {
     this.startLoading()
     var deferred = new $.Deferred()
 
-    let pubKey = secp256k1.publicKeyCreate(new Buffer(this.userWallet.privateKey, 'hex'), true)
-
-    let txn = {
+    let txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
       version: 0,
       nonce: this.userWallet.nonce + 1,
       to: payment.address,
       amount: payment.amount,
-      pubKey: pubKey.toString('hex'),
       gasPrice: payment.gasPrice,
       gasLimit: payment.gasLimit
-    }
-
-    var msg = this.intToByteArray(txn.version, 8).join('') +
-              this.intToByteArray(txn.nonce, 64).join('') +
-              txn.to +
-              txn.pubKey +
-              this.intToByteArray(txn.amount, 64).join('')
-
-    let sig = this.zlib.schnorr.sign(new Buffer(msg, 'hex'), new Buffer(this.userWallet.privateKey, 'hex'), pubKey)
-    let r = sig.r.toString('hex')
-    let s = sig.s.toString('hex')
-    while (r.length < 64) {
-      r = '0' + r
-    }
-    while (s.length < 64) {
-      s = '0' + s
-    }
-    txn['signature'] = r + s
+    })
 
     let that = this
     this.node.createTransaction(txn, function(err, data) {
       if (err || data.error) {
         deferred.reject(err)
       } else {
+        // add to local cached list
+        that.addLocalTxn({txnId: data.result, amount: txn.amount, toAddr: txn.to})
+
         deferred.resolve({
           txId: data.result
         })
@@ -441,6 +455,243 @@ export class ZilliqaService {
 
     return deferred.promise()
   }
+
+  addLocalTxn(args) {
+    let that = this
+
+    let tid = setInterval(() => {
+      that.node.getTransaction({txHash: args.txnId}, function(err, data) {
+        if (err || data.result.error || !data.result['ID']) {
+          return
+        } else {
+          let id = data.result['ID']
+          let amount = data.result['amount']
+          let toAddr = data.result['toAddr']
+          console.log(id, amount, toAddr)
+          
+          // get the index of this txn in the recentTxns array
+          let i = that.recentTxns.findIndex(txn => txn.txHash === id)
+          if (i == -1) return
+
+          that.recentTxns[i]['confirmed'] = true
+          that.recentTxns[i]['id'] = id
+          that.recentTxns[i]['amount'] = amount
+          that.recentTxns[i]['toAddr'] = toAddr
+
+          // cancel further checking of this txn
+          clearInterval(that.recentTxns[i].tid)
+        }
+      })
+    }, 5000)
+
+    this.recentTxns.push({
+      id: args.txnId, 
+      tid: tid, 
+      confirmed: false, 
+      amount: args.amount, 
+      toAddr: args.toAddr
+    })
+  }
+
+  // methods for scilla editor and smart contracts
+
+
+  /**
+   * run the code and return txid
+   * @returns {Promise} Promise object containing the required data
+   */
+  createContract(codeStr, initParams): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    // setup a dummy transaction
+    var toPubKey = sha256.digest(new Buffer('', 'hex'))// sha256 hash of empty string for contract creation
+    let toAddr = toPubKey.toString('hex', 12) // rightmost 160 bits/20 bytes
+
+    // always update account to ensure latest nonce
+    this.updateAccount().then(() => {
+      console.log('now nonce is ' + that.userWallet.nonce)
+      var txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
+        version: 0,
+        nonce: +that.userWallet.nonce + 1,
+        to: '0000000000000000000000000000000000000000',
+        amount: 0,
+        gasPrice: 0,
+        gasLimit: 0,
+        code: codeStr,
+        data: JSON.stringify(initParams).replace(/\\"/g, '"')
+      })
+      console.log('sending txn:')
+      console.log(txn)
+
+      this.node.createTransaction(txn, function (err, data) {
+        if (err || data.error) {
+          deferred.reject(err)
+        } else {
+          // generate the address of the newly created contract
+          let nonceStr = that.zlib.util.intToByteArray(that.userWallet.nonce, 64).join('')
+          let newstr = that.userWallet.address + nonceStr
+
+          var contractPubKey = sha256.digest(new Buffer(newstr, 'hex'))// sha256 hash of address+nonce
+          var contractAddr = contractPubKey.toString('hex', 12) // rightmost 160 bits/20 bytes
+
+          console.log('Contract should be deployed at address ' + contractAddr + ' soon.')
+
+          deferred.resolve({
+            result: data.result,
+            addr: contractAddr
+          })
+        }
+        that.endLoading()
+      })
+    })
+    return deferred.promise()
+  }
+
+  getContractHistory(): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getSmartContracts({address: this.userWallet.address}, function (err, data) {
+      if (err || data.error) {
+        deferred.reject(err)
+      } else {
+         deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
+    return deferred.promise()
+  }
+
+  checkPendingTxns(txnid, idx): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getTransaction({txHash: txnid}, function (err, data) {
+      if (err || data.error || data.result.error) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result,
+          index: idx
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
+  callTxnMethod(addr, method, amount, params): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    var data = JSON.stringify({
+      '_from': this.userWallet.address,
+      '_tag': method,
+      '_amount': amount,
+      'params': params
+    })
+
+    // always update account to ensure latest nonce
+    this.updateAccount().then(() => {
+      // setup a dummy transaction
+      var txn = that.zlib.util.createTransactionJson(that.userWallet.privateKey, {
+        version: 0,
+        nonce: +that.userWallet.nonce + 1,
+        to: addr,
+        amount: amount,
+        gasPrice: 0,
+        gasLimit: 0,
+        data: data
+      })
+    
+      console.log('Sending txn...')
+      console.log(txn)
+
+      this.node.createTransaction(txn, function (err, data) {
+        if (err || data.error) {
+          console.log(err || data.error)
+          deferred.reject(err)
+        } else {
+          console.log(data.result)
+
+          deferred.resolve({
+            result: data.result
+          })
+        }
+        that.endLoading()
+      })
+    })
+
+    return deferred.promise()
+  }
+
+  getContractState(addr): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getSmartContractState({address: addr}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
+  getContractCode(addr): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getSmartContractCode({address: addr}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
+
+    this.endLoading()
+
+    return deferred.promise()
+  }
+
+  checkContractCode(code): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.checkCode({code: code}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
 
   startLoading() {
     setTimeout(() => {this.networkLoading = true}, 0)

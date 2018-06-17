@@ -19,9 +19,3 @@
   cursor: inherit;
   display: block;
 }
-.info-box {
-  border: 1px solid #49c1bf;
-  padding: 1rem;
-  border-radius: 3px;
-  word-wrap: break-word;
-}
