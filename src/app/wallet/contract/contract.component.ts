@@ -47,14 +47,13 @@ export class ContractComponent implements OnInit, OnDestroy {
   contract: any
   pendingMethodCalls: Array<any>
 
-  @ViewChild('editor') editor
+  @ViewChild('editor0') editor
   codeError: {
     line: any,
     text: string
   }
 
-  constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {
-    this.codeText = Constants.SAMPLE_SCILLA_CODES[0]
+  constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {    
     this.sampleContract = 0
     this.state = 0
   }
@@ -85,24 +84,34 @@ export class ContractComponent implements OnInit, OnDestroy {
       contractAddr: '',
       methodName: '',
       amount: 0,
+      gas: 50,
       params:
       [],
       result: '',
       state: {},
       code: {},
-      ABI: {}
+      ABI: {
+        transitions: [],
+        initParams: {}
+      }
     }
     this.pendingMethodCalls = []
     this.codeError = {
       line: null,
       text: null
     }
+    this.codeText = Constants.SAMPLE_SCILLA_CODES[0]
   }
 
   loadData() {
     let that = this
     this.zilliqaService.getContractHistory().then((data) => {
-      that.contractHistory = data.result
+      console.log(data)
+      if (data.result && data.result.Error) {
+
+      } else {
+        that.contractHistory = data.result
+      }
     })
   }
 
@@ -125,6 +134,11 @@ export class ContractComponent implements OnInit, OnDestroy {
 
       this.refreshContract()
     }
+    if (newState == 2) {
+      this.contract.gas = 50
+    } else if (newState == 3) {
+      this.contract.gas = 10
+    } 
 
     this.state = newState
   }
@@ -132,8 +146,9 @@ export class ContractComponent implements OnInit, OnDestroy {
   runCode() {
     let that = this
     console.log(`Running Contract Creation...`)
-
-    this.zilliqaService.createContract(this.codeText, this.contract.ABI.initParams).then((data) => {
+    console.log(this.contract)
+    console.log(this.contract.gas)
+    this.zilliqaService.createContract(this.codeText, this.contract.ABI.initParams, this.contract.amount, this.contract.gas).then((data) => {
       that.newContractCreated(data.result, data.addr)
     }).catch((err) => {
 
@@ -155,7 +170,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
     this.clearEditor()
     this.contract.ABI.initParams = that.parseInitParams(this.codeText)
-    
+
     this.zilliqaService.checkContractCode(this.codeText).then((data) => {
       if (data.result.result == 'success') {
         that.codeError.text = 'Code checked successfully.'
@@ -172,7 +187,7 @@ export class ContractComponent implements OnInit, OnDestroy {
         var Range = ace.require('ace/range').Range
         that.codeError.line = that.editor.getEditor().getSession().addMarker(new Range(line, 0, line, col), 'ace_highlight-marker', 'fullLine')
         
-        that.codeError.text = 'Syntax Error, column ' + col
+        that.codeError.text = 'Syntax Error: line ' + line+1 + ', column ' + col
         that.editor.getEditor().getSession().setAnnotations([{
           row: line,
           column: col,
@@ -234,14 +249,19 @@ export class ContractComponent implements OnInit, OnDestroy {
     this.contract.params.pop()
   }
 
+  invalidGas() {
+    // true if blank or negative or higher than wallet balance - 0 is allowed
+    return (this.contract.gas == null) || (this.contract.gas < 0) || (this.contract.gas > this.zilliqaService.userWallet.balance)
+  }
+
   invalidAmount() {
     // true if blank or negative or higher than wallet balance - 0 is allowed
     return (this.contract.amount == null) || (this.contract.amount < 0) || (this.contract.amount > this.zilliqaService.userWallet.balance)
   }
 
   checkBalance() {
-    // false if balance < 50
-    return (this.zilliqaService.userWallet.balance < 50)
+    // true if balance < 50
+    return false//(this.zilliqaService.userWallet.balance < 50)
   }
 
   updateSampleContract(newContract) {
@@ -281,9 +301,10 @@ export class ContractComponent implements OnInit, OnDestroy {
     var method = this.contract.methodName
     var params = this.contract.params
     var amount = this.contract.amount
+    var gas = this.contract.gas
 
     let that = this
-    this.zilliqaService.callTxnMethod(contractAddr, method, amount, params).then((data) => {
+    this.zilliqaService.callTxnMethod(contractAddr, method, amount, gas, params).then((data) => {
       that.contract.result = that.contract.methodName + " call pending, txnid: " + data.result
       that.pendingMethodCalls.push({callName: that.contract.methodName, txnid: data.result, count: 0})
     })
@@ -350,7 +371,7 @@ export class ContractComponent implements OnInit, OnDestroy {
       that.contract.code.error = "Contract code call failed: " + JSON.stringify(err)
       that.codeText = that.contract.code.error
       that.contract.code.result = null
-      that.contract.ABI = {}
+      that.contract.ABI = {transitions: [], initParams: {}}
     })
   }
 

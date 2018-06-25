@@ -50,8 +50,8 @@ export class WalletsendComponent implements OnInit {
     this.payment = {
       amount: 0,
       address: '',
-      gasPrice: 0,
-      gasLimit: 0
+      gasPrice: 1,
+      gasLimit: 1
     }
 
     // recaptcha hack
@@ -105,11 +105,16 @@ export class WalletsendComponent implements OnInit {
     return (this.payment.amount == null) || (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
   }
 
+  invalidGas() {
+    // true if blank or negative or higher than wallet balance - 0 is allowed
+    return (this.payment.gasLimit == null) || (this.payment.gasLimit < 0) || (this.payment.gasLimit > this.zilliqaService.userWallet.balance)
+  }
+
   invalidPayment() {
     let addr = this.convertHexAddress()
 
     // true if address invalid or recaptcha not filled or invalidAmount()
-    return (!(addr.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled || this.invalidAmount())
+    return (!(addr.match(/^[0-9a-fA-F]{40}$/)) || !this.recaptchaFilled || this.invalidAmount() || this.invalidGas())
   }
 
   onSend() {
