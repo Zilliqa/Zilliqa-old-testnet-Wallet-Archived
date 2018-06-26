@@ -10,8 +10,6 @@ export class Constants {
     'http://localhost:4201'
   ]
 
-  public static RAVEN_URL = 'https://43ce6ef6087c428ea8604285817fc9e0@sentry.io/1053004'
-
   public static SAMPLE_SCILLA_CODES = [`(***************************************************)
 (*               Associated library                *)
 (***************************************************)
@@ -91,7 +89,7 @@ contract Crowdfunding
  goal      : Int)
 
 (* Mutable fields *)
-field backers : Map Address Int = Emp 
+field backers : Map Address Int = Emp Address Int
 field funded : Bool = False
 
 transition Donate ()
@@ -201,36 +199,14 @@ transition ClaimBack ()
     end
   end  
 end`,
-`(***************************************************)
+`(* This contract implements a fungible token interface a la ERC20.*)
+(* This contract does not fire events *)
+
+
+(***************************************************)
 (*               Associated library                *)
 (***************************************************)
-library ERC20
-
-let andb = 
-  fun (b : Bool) => fun (c : Bool) =>
-    match b with 
-    | False => False
-    | True  => match c with 
-               | False => False
-               | True  => True
-               end
-    end
-
-let orb = 
-  fun (b : Bool) => fun (c : Bool) =>
-    match b with 
-    | True  => True
-    | False => match c with 
-               | False => False
-               | True  => True
-               end
-    end
-
-let negb = fun (b : Bool) => 
-  match b with
-  | True => False
-  | False => True
-  end
+library FungibleToken
 
 let one_msg = 
   fun (msg : Message) => 
@@ -249,19 +225,22 @@ let min_int =
     b
   end
 
+let invalid_input = 1
+
 (***************************************************)
 (*             The contract definition             *)
 (***************************************************)
-contract ERC20
+
+contract FungibleToken
 (owner : Address,
  total_tokens : Int)
 
 (* Initial balance is not stated explicitly: it's initialized when creating the contract. *)
 
 field balances : Map Address Int =
-  let m = Emp in
+  let m = Emp Address Int in
     builtin put m owner total_tokens
-field allowed : Map Address (Map Address Int) = Emp
+field allowed : Map Address (Map Address Int) = Emp Address (Map Address Int)
 
 transition BalanceOf (tokenOwner : Address)
   bl <- balances;
@@ -285,99 +264,126 @@ transition TotalSupply ()
 end
 
 transition Transfer (to : Address, tokens : Int)
-  bl <- balances;
-  bal = builtin get bl _sender;
-  match bal with
-  | Some b =>
-    val = min_int b tokens;
-    (* subtract val from _sender and add it to to *)
-    new_sender_bal = builtin sub b val;
-    new_balances = builtin put bl _sender new_sender_bal;
-    to_bal = builtin get bl to;
-    match to_bal with
-    | Some x =>
-      new_to_bal = builtin add x val;
-      new_balances2 = builtin put new_balances to new_to_bal;
-      balances := new_balances2
+  zero = 0;
+  input_err = builtin lt tokens zero;
+  match input_err with
+  | True =>
+    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
+    msgs = one_msg msg;
+    send msgs
+  | False =>
+    bl <- balances;
+    bal = builtin get bl _sender;
+    match bal with
+    | Some b =>
+      val = min_int b tokens;
+      (* subtract val from _sender and add it to to *)
+      new_sender_bal = builtin sub b val;
+      new_balances = builtin put bl _sender new_sender_bal;
+      to_bal = builtin get bl to;
+      match to_bal with
+      | Some x =>
+        new_to_bal = builtin add x val;
+        new_balances2 = builtin put new_balances to new_to_bal;
+        balances := new_balances2
+      | None =>
+        new_balances3 = builtin put new_balances to val;
+        balances := new_balances3
+      end;
+      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : val };
+      msgs = one_msg msg;
+      send msgs
     | None =>
-      new_balances3 = builtin put new_balances to val;
-      balances := new_balances3
-    end;
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : val };
-    msgs = one_msg msg;
-    send msgs
-  | None =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : 0 };
-    msgs = one_msg msg;
-    send msgs
+      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : 0 };
+      msgs = one_msg msg;
+      send msgs
+    end
   end
 end
 
 transition TransferFrom (from : Address, to : Address, tokens : Int)
-  bl <- balances;
-  al <- allowed;
-  m = "Transfer not allowed";
-  bal = builtin get bl from;
-  (* Check if _sender has been authorized by "from" *)
-  allowed_from = builtin get al from;
-  match allowed_from with
-  | Some m =>
-    (* How many tokens has _sender been authorized to transfer, by "from" *)
-    sender_allowed_from = builtin get m _sender;
-    all = Pair {Option(Int) Option(Int)} bal sender_allowed_from;
-    match all with
-    | Pair (Some a) (Some b) =>
-      (* We can only transfer the minimum of available or authorized tokens *)
-      t = min_int a b;
-      amount = min_int t tokens;
-      (* amount is what we should subtract from "from" and add to "to" *)
-      new_from_bal = builtin sub a amount;
-      balances_1 = builtin put bl from new_from_bal;
-      balances := balances_1;
-      to_bal = builtin get bl to;
-      match to_bal with
-      | Some tb =>
-        to_bal_new = builtin add tb amount;
-        balances_2 = builtin put balances_1 to to_bal_new;
-        balances := balances_2;
-        send no_msg
-      | None =>
-        (* "to" has no balance. So just set it to amount *)
-        balances_3 = builtin put balances_1 to amount;
-        balances := balances_3;
-        send no_msg
-      end;
-      (* reduce "allowed" by "amount" *)
-      new_allowed = builtin sub b amount;
-      new_m = builtin put m _sender new_allowed;
-      new_allowed = builtin put al from new_m;
-      allowed := new_allowed
-    | Pair None None =>
+  zero = 0;
+  input_err = builtin lt tokens zero;
+  match input_err with
+  | True =>
+    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
+    msgs = one_msg msg;
+    send msgs
+  | False =>
+    bl <- balances;
+    al <- allowed;
+    m = "Transfer not allowed";
+    bal = builtin get bl from;
+    (* Check if _sender has been authorized by "from" *)
+    allowed_from = builtin get al from;
+    match allowed_from with
+    | Some m =>
+      (* How many tokens has _sender been authorized to transfer, by "from" *)
+      sender_allowed_from = builtin get m _sender;
+      all = Pair {Option(Int) Option(Int)} bal sender_allowed_from;
+      match all with
+      | Pair (Some a) (Some b) =>
+        (* We can only transfer the minimum of available or authorized tokens *)
+        t = min_int a b;
+        amount = min_int t tokens;
+        (* amount is what we should subtract from "from" and add to "to" *)
+        new_from_bal = builtin sub a amount;
+        balances_1 = builtin put bl from new_from_bal;
+        balances := balances_1;
+        to_bal = builtin get balances_1 to;
+        match to_bal with
+        | Some tb =>
+          to_bal_new = builtin add tb amount;
+          balances_2 = builtin put balances_1 to to_bal_new;
+          balances := balances_2;
+          send no_msg
+        | None =>
+          (* "to" has no balance. So just set it to amount *)
+          balances_3 = builtin put balances_1 to amount;
+          balances := balances_3;
+          send no_msg
+        end;
+        (* reduce "allowed" by "amount" *)
+        new_allowed = builtin sub b amount;
+        new_m = builtin put m _sender new_allowed;
+        new_allowed = builtin put al from new_m;
+        allowed := new_allowed
+      | Pair None None =>
+        msg = { _tag : "Main"; _recipient : _sender; _amount : 0; message : m };
+        msgs = one_msg msg;
+        send msgs
+      end
+    | None =>
       msg = { _tag : "Main"; _recipient : _sender; _amount : 0; message : m };
       msgs = one_msg msg;
       send msgs
     end
-  | None =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; message : m };
-    msgs = one_msg msg;
-    send msgs
   end
 end
 
 transition Approve (spender : Address, tokens : Int)
-  al <- allowed;
-  sender_map = builtin get al _sender;
-  match sender_map with
-  | Some m =>
-    allowed_to_spender = builtin put m spender tokens;
-    allowed_new = builtin put al _sender allowed_to_spender;
-    allowed := allowed_new;
-    send no_msg
-  | None =>
-    allowed_to_spender = let m = Emp in builtin put m spender tokens;
-    allowed_new = builtin put al _sender allowed_to_spender;
-    allowed := allowed_new;
-    send no_msg
+  zero = 0;
+  input_err = builtin lt tokens zero;
+  match input_err with
+  | True =>
+    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
+    msgs = one_msg msg;
+    send msgs
+  | False =>
+    al <- allowed;
+    sender_map = builtin get al _sender;
+    match sender_map with
+    | Some m =>
+      allowed_to_spender = builtin put m spender tokens;
+      allowed_new = builtin put al _sender allowed_to_spender;
+      allowed := allowed_new;
+      send no_msg
+    | None =>
+      allowed_to_spender = let m = Emp Address Int in builtin put m spender tokens;
+      allowed_new = builtin put al _sender allowed_to_spender;
+      allowed := allowed_new;
+      send no_msg
+    end
   end
 end
 
@@ -674,5 +680,4 @@ transition Withdraw ()
     send msgs
   end
 end`]
-
 }

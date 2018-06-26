@@ -304,7 +304,7 @@ export class ZilliqaService {
    * @returns {string} the newly created private key
    */
   createWallet(): string {
-    let key = new Buffer('C586FD5EB4069C6FD19C59D74534B8C440E45F3288914495FB67AE4BD7CEBEEC', 'hex')//secp256k1.generatePrivateKey()
+    let key = secp256k1.generatePrivateKey()
  
     // account will be registered only when it receives ZIL
     this.userWallet = {
@@ -500,7 +500,7 @@ export class ZilliqaService {
    * run the code and return txid
    * @returns {Promise} Promise object containing the required data
    */
-  createContract(codeStr, initParams): Promise<any> {
+  createContract(codeStr, initParams, amount, gas): Promise<any> {
     this.startLoading()
     var deferred = new $.Deferred();
     let that = this
@@ -516,9 +516,9 @@ export class ZilliqaService {
         version: 0,
         nonce: +that.userWallet.nonce + 1,
         to: '0000000000000000000000000000000000000000',
-        amount: 0,
-        gasPrice: 0,
-        gasLimit: 0,
+        amount: amount,
+        gasPrice: 1,
+        gasLimit: gas,
         code: codeStr,
         data: JSON.stringify(initParams).replace(/\\"/g, '"')
       })
@@ -587,7 +587,7 @@ export class ZilliqaService {
     return deferred.promise()
   }
 
-  callTxnMethod(addr, method, amount, params): Promise<any> {
+  callTxnMethod(addr, method, amount, gas, params): Promise<any> {
     this.startLoading()
     var deferred = new $.Deferred();
     let that = this
@@ -607,8 +607,8 @@ export class ZilliqaService {
         nonce: +that.userWallet.nonce + 1,
         to: addr,
         amount: amount,
-        gasPrice: 0,
-        gasLimit: 0,
+        gasPrice: 1,
+        gasLimit: gas,
         data: data
       })
     
@@ -691,6 +691,26 @@ export class ZilliqaService {
 
     return deferred.promise()
   }
+
+  checkContractCodeTest(code, init, blockchain, state, msg): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.checkCodeTest({code: code, init: init, blockchain: blockchain, state: state, message: msg}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data
+        })
+      }
+      that.endLoading()
+    })
+
+    return deferred.promise()
+  }
+
 
 
   startLoading() {

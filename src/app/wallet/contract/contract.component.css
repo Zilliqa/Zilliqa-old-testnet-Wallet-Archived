@@ -26,6 +26,12 @@ h3.card-title, .hnb {
   background-color: transparent;
   border-color: #58ca58;
 }
+.json-format {
+  background-color: #49c1bf; 
+  border-radius: 5px; 
+  max-height: 200px; 
+  overflow: scroll;
+}
 @media (max-width: 1024px) {
   .card-icon {
       font-size: 3rem;
@@ -111,6 +117,7 @@ th {
   transition: color 0.3s;
 }
 
+
 .menu--ceres .menu__link:hover,
 .menu--ceres .menu__link:focus {
   color: #49c1bf;
@@ -127,6 +134,9 @@ th {
   position: absolute;
   bottom: 0;
   background: #49c1bf;
+}
+.editorMenu .menu__link::after {
+  background: transparent !important;
 }
 
 .menu--ceres .menu__item::before,
@@ -177,4 +187,21 @@ th {
   transform: translate3d(0, -48px, 0);
   -webkit-transition-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
   transition-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+
+.editorMenu .menu__link {
+  height: 35px !important;
+  padding: 10px 10px 0px 10px !important;
+  min-width: 50px !important;
+}
+
+.editorMenu {
+  margin: 0 !important;
+}
+
+.eLink .menu__link::after {
+  -webkit-transform: translate3d(0, -35px, 0) !important;
+  transform: translate3d(0, -35px, 0) !important;
+  background: #49c1bf !important;
 }
