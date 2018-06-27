@@ -360,8 +360,10 @@ export class ContractComponent implements OnInit, OnDestroy {
 
     let that = this
     this.zilliqaService.getContractCode(contractAddr).then((data) => {
+      console.log('11.')
+      console.log(data)
       that.contract.code.error = null
-      that.contract.code.result = data.result
+      that.contract.code.result = data.result.code
       that.codeText = that.contract.code.result
 
       // parse the code to get the selectedTransitions
@@ -377,7 +379,9 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   parseTransitions(str) {
     var list = []
+    console.log('removing comments')
     str = this.removeComments(str)
+    console.log(str)
     
     var offset
     try {
