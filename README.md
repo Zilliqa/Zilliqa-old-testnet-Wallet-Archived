@@ -30,3 +30,16 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 
 ## Licence 
 You can view our [licence here](https://github.com/Zilliqa/Zilliqa-Wallet/blob/master/LICENSE).
+
+## for windows developer in china
+- download nodejs&install
+- Navigate to source code directory and run the following:
+- npm i g @angular/cli@1.7.3 --registry=https://registry.npm.taobao.org'
+- 'npm install --registry=https://registry.npm.taobao.org'
+- 'ng serve'
+## for windows developer
+- download nodejs&install
+- Navigate to source code directory and run the following:
+- npm i g @angular/cli@1.7.3'
+- 'npm install'
+- 'ng serve'
