@@ -18,13 +18,13 @@
 			<nav class="menu menu--ceres">
 				<ul class="menu__list">
 					<li class="menu__item" [ngClass]="{'menu__item--current': state == 0}">
-						<a class="menu__link" (click)="setState(0)">Contract History</a>
+						<a class="menu__link" (click)="setState(0, undefined)">Contract History</a>
 					</li>
 					<li class="menu__item" [ngClass]="{'menu__item--current': state == 1}">
-						<a class="menu__link" (click)="setState(1)">Deploy New Contract</a>
+						<a class="menu__link" (click)="setState(1, undefined)">Deploy New Contract</a>
 					</li>
 					<li class="menu__item" [ngClass]="{'menu__item--current': state == 2}">
-						<a class="menu__link" (click)="setState(2)">Call Existing Contract</a>
+						<a class="menu__link" (click)="setState(2, undefined)">Call Existing Contract</a>
 					</li>
 				</ul>
 			</nav>

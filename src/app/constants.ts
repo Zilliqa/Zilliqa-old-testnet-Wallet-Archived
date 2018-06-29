@@ -2,13 +2,7 @@ export class Constants {
   public static MAX_CONNECTION_ATTEMPTS = 20
   public static CONNECTION_ATTEMPT_TIMEOUT = 600
 
-  public static NODE_URLS = [
-    'http://localhost:4201',
-    'http://localhost:4201',
-    'http://localhost:4201',
-    'http://localhost:4201',
-    'http://localhost:4201'
-  ]
+  public static API_URL = 'http://localhost:4201'
 
   public static SAMPLE_SCILLA_CODES = [`(* HelloWorld contract *)
 

@@ -29,7 +29,7 @@ export class WalletbaseComponent implements OnInit {
   wallet: Wallet
   loading: boolean
 
-  constructor(private zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
+  constructor(public zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
     this.wallet = new Wallet()
     this.privateKeyDisplay = '****************************************************************'
     this.revealBtn = 'Show'
