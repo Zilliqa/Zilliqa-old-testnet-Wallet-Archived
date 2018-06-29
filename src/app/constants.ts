@@ -10,7 +10,54 @@ export class Constants {
     'http://localhost:4201'
   ]
 
-  public static SAMPLE_SCILLA_CODES = [`(***************************************************)
+  public static SAMPLE_SCILLA_CODES = [`(* HelloWorld contract *)
+
+
+(***************************************************)
+(*               Associated library                *)
+(***************************************************)
+library HelloWorld
+
+let one_msg = 
+  fun (msg : Message) => 
+  let nil_msg = Nil {Message} in
+  Cons {Message} msg nil_msg
+
+let not_owner_code = Int32 1
+let set_hello_code = Int32 2
+
+(***************************************************)
+(*             The contract definition             *)
+(***************************************************)
+
+contract HelloWorld
+(owner: Address)
+
+field welcome_msg : String = ""
+
+transition setHello (msg : String)
+  is_owner = builtin eq owner _sender;
+  match is_owner with
+  | False =>
+    msg = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : not_owner_code};
+    msgs = one_msg msg;
+    send msgs
+  | True =>
+    welcome_msg := msg;
+    msg = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : set_hello_code};
+    msgs = one_msg msg;
+    send msgs
+  end
+end
+
+
+transition getHello ()
+    r <- welcome_msg;
+    msg = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; msg : r};
+    msgs = one_msg msg;
+    send msgs
+end`,
+`(***************************************************)
 (*               Associated library                *)
 (***************************************************)
 library Crowdfunding
@@ -50,15 +97,15 @@ let one_msg =
     Cons {Message} msg nil_msg
     
 let check_update = 
-  fun (bs : Map Address Int) =>
+  fun (bs : Map Address Uint128) =>
   fun (_sender : Address) =>
-  fun (_amount : Int) =>
+  fun (_amount : Uint128) =>
     let c = builtin contains bs _sender in
     match c with 
     | False => 
       let bs1 = builtin put bs _sender _amount in
-      Some {Map Address Int} bs1 
-    | True  => None {Map Address Int}
+      Some {Map Address Uint128} bs1 
+    | True  => None {Map Address Uint128}
     end
 
 let blk_leq =
@@ -68,15 +115,15 @@ let blk_leq =
     let bc2 = builtin eq blk1 blk2 in 
     orb bc1 bc2
 
-let accepted_code = 1
-let missed_deadline_code = 2
-let already_backed_code  = 3
-let not_owner_code  = 4
-let too_early_code  = 5
-let got_funds_code  = 6
-let cannot_get_funds  = 7
-let cannot_reclaim_code = 8
-let reclaimed_code = 9
+let accepted_code = Int32 1
+let missed_deadline_code = Int32 2
+let already_backed_code  = Int32 3
+let not_owner_code  = Int32 4
+let too_early_code  = Int32 5
+let got_funds_code  = Int32 6
+let cannot_get_funds  = Int32 7
+let cannot_reclaim_code = Int32 8
+let reclaimed_code = Int32 9
   
 (***************************************************)
 (*             The contract definition             *)
@@ -86,10 +133,10 @@ contract Crowdfunding
 (*  Parameters *)
 (owner     : Address,
  max_block : BNum,
- goal      : Int)
+ goal      : Uint128)
 
 (* Mutable fields *)
-field backers : Map Address Int = Emp Address Int
+field backers : Map Address Uint128 = Emp Address Uint128
 field funded : Bool = False
 
 transition Donate ()
@@ -101,21 +148,21 @@ transition Donate ()
     res = check_update bs _sender _amount;
     match res with
     | None => 
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0; 
               code : already_backed_code};
       msgs = one_msg msg;
       send msgs
     | Some bs1 =>
       backers := bs1; 
       accept; 
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0; 
               code : accepted_code};
       msgs = one_msg msg;
       send msgs     
     end  
   | False => 
-    msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
-            code : missed_dealine_code};
+    msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0; 
+            code : missed_deadline_code};
     msgs = one_msg msg;
     send msgs
   end 
@@ -125,7 +172,7 @@ transition GetFunds ()
   is_owner = builtin eq owner _sender;
   match is_owner with
   | False => 
-    msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+    msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0;
             code : not_owner_code};
     msgs = one_msg msg;
     send msgs
@@ -139,7 +186,7 @@ transition GetFunds ()
     c4 = andb c1 c3;
     match c4 with 
     | False =>  
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0;
               code : cannot_get_funds};
       msgs = one_msg msg;
       send msgs
@@ -160,13 +207,13 @@ transition ClaimBack ()
   after_deadline = builtin blt max_block blk;
   match after_deadline with
   | False =>
-    msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+    msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0;
             code : too_early_code};
     msgs = one_msg msg;
     send msgs
   | True =>
     bs <- backers;
-    bal <- balance;
+    bal <- _balance;
     (* Goal has not been reached *)
     f <- funded;
     c1 = builtin lt bal goal;
@@ -176,7 +223,7 @@ transition ClaimBack ()
     c5 = andb c3 c4;
     match c5 with
     | False =>
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0;
               code : cannot_reclaim_code};
       msgs = one_msg msg;
       send msgs
@@ -184,7 +231,7 @@ transition ClaimBack ()
       res = builtin get bs _sender;
       match res with
       | None =>
-        msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+        msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0;
                 code : cannot_reclaim_code};
         msgs = one_msg msg;
         send msgs
@@ -216,7 +263,7 @@ let one_msg =
 let no_msg = Nil {Message}
 
 let min_int =
-  fun (a : Int) => fun (b : Int) =>
+  fun (a : Uint128) => fun (b : Uint128) =>
   let alt = builtin lt a b in
   match alt with
   | True =>
@@ -225,165 +272,142 @@ let min_int =
     b
   end
 
-let invalid_input = 1
-
 (***************************************************)
 (*             The contract definition             *)
 (***************************************************)
 
 contract FungibleToken
 (owner : Address,
- total_tokens : Int)
+ total_tokens : Uint128)
 
 (* Initial balance is not stated explicitly: it's initialized when creating the contract. *)
 
-field balances : Map Address Int =
-  let m = Emp Address Int in
+field balances : Map Address Uint128 =
+  let m = Emp Address Uint128 in
     builtin put m owner total_tokens
-field allowed : Map Address (Map Address Int) = Emp Address (Map Address Int)
+field allowed : Map Address (Map Address Uint128) = Emp Address (Map Address Uint128)
 
 transition BalanceOf (tokenOwner : Address)
   bl <- balances;
   val = builtin get bl tokenOwner;
   match val with
   | Some v =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; bal : v };
+    msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; bal : v };
     msgs = one_msg msg;
     send msgs
   | None =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; bal : 0 };
+    msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; bal : Uint128 0 };
     msgs = one_msg msg;
     send msgs
   end
 end
 
 transition TotalSupply ()
-  msg = { _tag : "Main"; _recipient : _sender; _amount : 0; total_tokens : total_tokens};
+  msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; total_tokens : total_tokens};
   msgs = one_msg msg;
   send msgs
 end
 
-transition Transfer (to : Address, tokens : Int)
-  zero = 0;
+transition Transfer (to : Address, tokens : Uint128)
+  zero = Uint128 0;
   input_err = builtin lt tokens zero;
-  match input_err with
-  | True =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
+  bl <- balances;
+  bal = builtin get bl _sender;
+  match bal with
+  | Some b =>
+    val = min_int b tokens;
+    (* subtract val from _sender and add it to to *)
+    new_sender_bal = builtin sub b val;
+    new_balances = builtin put bl _sender new_sender_bal;
+    to_bal = builtin get bl to;
+    match to_bal with
+    | Some x =>
+      new_to_bal = builtin add x val;
+      new_balances2 = builtin put new_balances to new_to_bal;
+      balances := new_balances2
+    | None =>
+      new_balances3 = builtin put new_balances to val;
+      balances := new_balances3
+    end;
+  msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; transferred : val };
+  msgs = one_msg msg;
+  send msgs
+  | None =>
+    msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; transferred : Uint128 0 };
     msgs = one_msg msg;
     send msgs
-  | False =>
-    bl <- balances;
-    bal = builtin get bl _sender;
-    match bal with
-    | Some b =>
-      val = min_int b tokens;
-      (* subtract val from _sender and add it to to *)
-      new_sender_bal = builtin sub b val;
-      new_balances = builtin put bl _sender new_sender_bal;
-      to_bal = builtin get bl to;
+  end
+end
+
+transition TransferFrom (from : Address, to : Address, tokens : Uint128)
+  zero = Uint128 0;
+  input_err = builtin lt tokens zero;
+  bl <- balances;
+  al <- allowed;
+  m = "Transfer not allowed";
+  bal = builtin get bl from;
+  (* Check if _sender has been authorized by "from" *)
+  allowed_from = builtin get al from;
+  match allowed_from with
+  | Some m =>
+    (* How many tokens has _sender been authorized to transfer, by "from" *)
+    sender_allowed_from = builtin get m _sender;
+    all = Pair {Option(Uint128) Option(Uint128)} bal sender_allowed_from;
+    match all with
+    | Pair (Some a) (Some b) =>
+      (* We can only transfer the minimum of available or authorized tokens *)
+      t = min_int a b;
+      amount = min_int t tokens;
+      (* amount is what we should subtract from "from" and add to "to" *)
+      new_from_bal = builtin sub a amount;
+      balances_1 = builtin put bl from new_from_bal;
+      balances := balances_1;
+      to_bal = builtin get balances_1 to;
       match to_bal with
-      | Some x =>
-        new_to_bal = builtin add x val;
-        new_balances2 = builtin put new_balances to new_to_bal;
-        balances := new_balances2
+      | Some tb =>
+        to_bal_new = builtin add tb amount;
+        balances_2 = builtin put balances_1 to to_bal_new;
+        balances := balances_2;
+        send no_msg
       | None =>
-        new_balances3 = builtin put new_balances to val;
-        balances := new_balances3
+        (* "to" has no balance. So just set it to amount *)
+        balances_3 = builtin put balances_1 to amount;
+        balances := balances_3;
+        send no_msg
       end;
-      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : val };
-      msgs = one_msg msg;
-      send msgs
-    | None =>
-      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; transferred : 0 };
+      (* reduce "allowed" by "amount" *)
+      new_allowed = builtin sub b amount;
+      new_m = builtin put m _sender new_allowed;
+      new_allowed = builtin put al from new_m;
+      allowed := new_allowed
+    | Pair None None =>
+      msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; message : m };
       msgs = one_msg msg;
       send msgs
     end
+  | None =>
+    msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; message : m };
+    msgs = one_msg msg;
+    send msgs
   end
 end
 
-transition TransferFrom (from : Address, to : Address, tokens : Int)
-  zero = 0;
+transition Approve (spender : Address, tokens : Uint128)
+  zero = Uint128 0;
   input_err = builtin lt tokens zero;
-  match input_err with
-  | True =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
-    msgs = one_msg msg;
-    send msgs
-  | False =>
-    bl <- balances;
-    al <- allowed;
-    m = "Transfer not allowed";
-    bal = builtin get bl from;
-    (* Check if _sender has been authorized by "from" *)
-    allowed_from = builtin get al from;
-    match allowed_from with
-    | Some m =>
-      (* How many tokens has _sender been authorized to transfer, by "from" *)
-      sender_allowed_from = builtin get m _sender;
-      all = Pair {Option(Int) Option(Int)} bal sender_allowed_from;
-      match all with
-      | Pair (Some a) (Some b) =>
-        (* We can only transfer the minimum of available or authorized tokens *)
-        t = min_int a b;
-        amount = min_int t tokens;
-        (* amount is what we should subtract from "from" and add to "to" *)
-        new_from_bal = builtin sub a amount;
-        balances_1 = builtin put bl from new_from_bal;
-        balances := balances_1;
-        to_bal = builtin get balances_1 to;
-        match to_bal with
-        | Some tb =>
-          to_bal_new = builtin add tb amount;
-          balances_2 = builtin put balances_1 to to_bal_new;
-          balances := balances_2;
-          send no_msg
-        | None =>
-          (* "to" has no balance. So just set it to amount *)
-          balances_3 = builtin put balances_1 to amount;
-          balances := balances_3;
-          send no_msg
-        end;
-        (* reduce "allowed" by "amount" *)
-        new_allowed = builtin sub b amount;
-        new_m = builtin put m _sender new_allowed;
-        new_allowed = builtin put al from new_m;
-        allowed := new_allowed
-      | Pair None None =>
-        msg = { _tag : "Main"; _recipient : _sender; _amount : 0; message : m };
-        msgs = one_msg msg;
-        send msgs
-      end
-    | None =>
-      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; message : m };
-      msgs = one_msg msg;
-      send msgs
-    end
-  end
-end
-
-transition Approve (spender : Address, tokens : Int)
-  zero = 0;
-  input_err = builtin lt tokens zero;
-  match input_err with
-  | True =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; err_msg : invalid_input };
-    msgs = one_msg msg;
-    send msgs
-  | False =>
-    al <- allowed;
-    sender_map = builtin get al _sender;
-    match sender_map with
-    | Some m =>
-      allowed_to_spender = builtin put m spender tokens;
-      allowed_new = builtin put al _sender allowed_to_spender;
-      allowed := allowed_new;
-      send no_msg
-    | None =>
-      allowed_to_spender = let m = Emp Address Int in builtin put m spender tokens;
-      allowed_new = builtin put al _sender allowed_to_spender;
-      allowed := allowed_new;
-      send no_msg
-    end
+  al <- allowed;
+  sender_map = builtin get al _sender;
+  match sender_map with
+  | Some m =>
+    allowed_to_spender = builtin put m spender tokens;
+    allowed_new = builtin put al _sender allowed_to_spender;
+    allowed := allowed_new;
+    send no_msg
+  | None =>
+    allowed_to_spender = let m = Emp Address Uint128 in builtin put m spender tokens;
+    allowed_new = builtin put al _sender allowed_to_spender;
+    allowed := allowed_new;
+    send no_msg
   end
 end
 
@@ -395,16 +419,16 @@ transition Allowance (tokenOwner : Address, spender : Address)
     spender_allowance = builtin get m spender;
     match spender_allowance with
     | Some n =>
-      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; allowed : n };
+      msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; allowed : n };
       msgs = one_msg msg;
       send msgs
     | None =>
-      msg = { _tag : "Main"; _recipient : _sender; _amount : 0; allowed : 0 };
+      msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; allowed : Uint128 0 };
       msgs = one_msg msg;
       send msgs
     end
   | None =>
-    msg = { _tag : "Main"; _recipient : _sender; _amount : 0; allowed : 0 };
+    msg = { _tag : "Main"; _recipient : _sender; _amount : Uint128 0; allowed : Uint128 0 };
     msgs = one_msg msg;
     send msgs
   end
@@ -463,7 +487,7 @@ let update_timer =
     match tm with
     | Some x => Some {BNum} x
     | None   =>
-      let window = 11 in
+      let window = Uint32 11 in
       let b1 = builtin badd b window in
       Some {BNum} b1
     end
@@ -489,7 +513,7 @@ let time_to_claim =
 
 let check_validity = 
   fun (a        : Address) =>
-  fun (solution : Int) =>
+  fun (solution : Int128) =>
   fun (pa       : Address) =>
   fun (pb       : Address) =>
   fun (guess_a  : Option Hash) =>
@@ -518,7 +542,7 @@ let can_withdraw =
   fun (b : BNum) =>
     match timer with
     | Some tm =>
-      let window = 10 in
+      let window = Uint32 10 in
       let deadline = builtin badd tm window in
       let can = builtin blt deadline b in
       match can with
@@ -556,13 +580,13 @@ let determine_winner =
     | Pair None None     => oa
     end
 
-let solution_submitted = 1
-let time_window_missed = 2
-let not_a_player = 3  
-let too_early_to_claim = 4
-let wrong__sender_or_solution = 5
-let here_is_the_reward = 6
-let cannot_withdraw = 7
+let solution_submitted = Int32 1
+let time_window_missed = Int32 2
+let not_a_player = Int32 3
+let too_early_to_claim = Int32 4
+let wrong__sender_or_solution = Int32 5
+let here_is_the_reward = Int32 6
+let cannot_withdraw = Int32 7
 
 (***************************************************)
 (*             The contract definition             *)
@@ -588,7 +612,7 @@ transition Play (guess: Hash)
   c = can_play tm_opt b;
   match c with
   | False => 
-    msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+    msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0; 
             code : time_window_missed};
     msgs = one_msg msg;
     send msgs        
@@ -603,7 +627,7 @@ transition Play (guess: Hash)
       player_a_hash := hopt;
       tm1 = update_timer tm_opt b;
       timer := tm1;
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0; 
               code : solution_submitted};
       msgs = one_msg msg;
       send msgs        
@@ -615,12 +639,12 @@ transition Play (guess: Hash)
         player_b_hash := hopt;
         tm1 = update_timer tm_opt b;
         timer := tm1;
-        msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+        msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0; 
                 code : solution_submitted};
         msgs = one_msg msg;
         send msgs        
       | False => 
-        msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+        msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0;
                 code : not_a_player};
         msgs = one_msg msg;
         send msgs
@@ -629,14 +653,14 @@ transition Play (guess: Hash)
   end
 end
 
-transition ClaimReward(solution: Int)
+transition ClaimReward(solution: Int128)
   tm_opt <- timer;
   b <- & BLOCKNUMBER;
   (* Check the timer *)
   ttc = time_to_claim tm_opt b;
   match ttc with
   | False => 
-    msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+    msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0;
             code : too_early_to_claim};
     msgs = one_msg msg;
     send msgs        
@@ -646,13 +670,13 @@ transition ClaimReward(solution: Int)
     is_valid = check_validity _sender solution player_a player_b pa pb;
     match is_valid with
     | False =>
-      msg  = {_tag : Main; _recipient : _sender; _amount : 0; 
+      msg  = {_tag : Main; _recipient : _sender; _amount : Uint128 0;
               code : wrong__sender_or_solution};
       msgs = one_msg msg;
       send msgs        
     | True  =>
       winner = determine_winner puzzle pa pb player_a player_b owner; 
-      bal <- balance;
+      bal <- _balance;
       msg  = {_tag : Main; _recipient : winner; _amount : bal; 
               code : here_is_the_reward};
       ff = False;         
@@ -667,7 +691,7 @@ transition Withdraw ()
   b <- &BLOCKNUMBER;
   cw = can_withdraw tm_opt b;
   is_owner = builtin eq owner _sender;
-  bal <- balance;
+  bal <- _balance;
   good_to_go = andb cw is_owner;
   match good_to_go with
   | True =>
@@ -675,7 +699,201 @@ transition Withdraw ()
     msgs = one_msg msg;
     send msgs
   | False =>
-    msg = {_tag : Main; _recipient : _sender; _amount : 0; code : cannot_withdraw};
+    msg = {_tag : Main; _recipient : _sender; _amount : Uint128 0; code : cannot_withdraw};
+    msgs = one_msg msg;
+    send msgs
+  end
+end`,
+`(***************************************************)
+(*               Associated library                *)
+(***************************************************)
+
+library OpenAuction
+
+let andb = 
+  fun (b : Bool) =>
+  fun (c : Bool) =>
+    match b with 
+    | False => False
+    | True  =>
+      match c with 
+      | False => False
+      | True  => True
+      end
+    end
+
+let orb = 
+  fun (b : Bool) => fun (c : Bool) =>
+    match b with 
+    | True  => True
+    | False =>
+      match c with 
+      | False => False
+      | True  => True
+      end
+    end
+
+let negb = fun (b : Bool) => 
+  match b with
+  | True => False
+  | False => True
+  end
+
+let blk_leq =
+  fun (blk1 : BNum) =>
+  fun (blk2 : BNum) =>
+    let bc1 = builtin blt blk1 blk2 in 
+    let bc2 = builtin eq blk1 blk2 in 
+    orb bc1 bc2
+
+
+let one_msg = 
+  fun (msg : Message) => 
+    let nil_msg = Nil {Message} in
+    Cons {Message} msg nil_msg
+    
+    
+let late_to_bid_code = Int32 1
+let too_early_to_bid_code = Int32 2
+let bid_too_low_code = Int32 3
+let first_bid_accepted_code  = Int32 4
+let bid_accepted_code  = Int32 5
+let money_sent_code  = Int32 6
+let nothing_to_withdraw_code  = Int32 7
+let auction_is_still_on_code  = Int32 8
+let auction_end_code  = Int32 9
+   
+    
+
+(***************************************************)
+(*             The contract definition             *)
+(***************************************************)
+
+
+contract OpenAuction
+(*  Parameters *)
+(auctionStart : BNum,
+ biddingTime  : Uint128,
+ beneficiary  : Address
+)
+
+(* Mutable fields *)
+
+field ended : Bool = False
+field highestBidder  : Option Address  = None {Address}
+field highestBid     : Uint128 = Uint128 0
+field pendingReturns : Map Address Uint128 = Emp Address Uint128
+
+
+(* Transition 1: bidding *)
+transition Bid ()
+  blk <- & BLOCKNUMBER;
+  endtime = builtin badd auctionStart biddingTime;
+  after_end = let one = Uint128 1 
+    in builtin badd endtime one;
+  e <- ended;
+  in_time = blk_leq after_end blk;
+  flag1 = orb in_time e;
+  early = blk_leq blk auctionStart;
+  match early with
+   | True =>
+      msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : too_early_to_bid_code};
+      msgs = one_msg msg;
+      send msgs
+  | False =>
+    match flag1 with
+    | True => 
+      msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : late_to_bid_code};
+      msgs = one_msg msg;
+      send msgs
+    | False =>
+      hb <- highestBid;
+      tmp1 = builtin lt hb _amount;
+      match tmp1 with 
+      | False =>
+        msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : bid_too_low_code};
+        msgs = one_msg msg;
+        send msgs
+      | True =>
+        accept;
+        hbPrev <- highestBidder;
+        prs <- pendingReturns;
+        match hbPrev with
+        | Some v => 
+          tmp2 = builtin contains prs v;
+          match tmp2 with
+          | True =>
+            pr = builtin get prs v;
+            hs1 = builtin add pr hb;
+            prs1 = builtin put prs v hs1;
+            pendingReturns := prs1;
+            bidder = Some {Address} _sender;
+            highestBidder := bidder;
+            highestBid := _amount;
+            msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : bid_accepted_code};
+            msgs = one_msg msg;
+            send msgs
+          | False =>
+            prs1 = builtin put prs v hb; 
+            pendingReturns := prs1;
+            bidder = Some {Address} _sender;
+            highestBidder := bidder;
+            highestBid := _amount;
+            msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : bid_accepted_code};
+            msgs = one_msg msg;
+            send msgs
+          end
+        | None =>
+          first_bidder = Some {Address} _sender;
+          highestBidder := first_bidder;
+          highestBid := _amount;
+          msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : first_bid_accepted_code};
+          msgs = one_msg msg;
+          send msgs
+        end
+      end
+    end
+  end
+end  
+  
+
+(* Transition 2: claiming money back *)
+transition Withdraw ()
+  prs <- pendingReturns;
+  pr = builtin get prs _sender;
+  match pr with
+  | None =>
+    msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : nothing_to_withdraw_code};
+    msgs = one_msg msg;
+    send msgs
+  | Some v =>
+    prs1 = builtin remove prs _sender; 
+    pendingReturns := prs1;
+    msg  = {_tag : "Main"; _recipient : _sender; _amount : v; code : money_sent_code};
+    msgs = one_msg msg;
+    send msgs
+  end 
+end
+
+
+(* Transition 3: auction ends *)
+transition AuctionEnd ()
+  blk <- & BLOCKNUMBER;
+  e <- ended;
+  t1 = builtin badd auctionStart biddingTime;
+  t2 = blk_leq t1 blk;
+  t3 = negb e;
+  t4 = andb t2 t3;
+  match t4 with
+  | False =>
+    msg  = {_tag : "Main"; _recipient : _sender; _amount : Uint128 0; code : auction_is_still_on_code};
+    msgs = one_msg msg;
+    send msgs
+  | True =>
+    tt = True;
+    ended := tt;    
+    hb <- highestBid;
+    msg  = {_tag : "Main"; _recipient : beneficiary; _amount : hb; code : auction_end_code; highest_bid : hb};
     msgs = one_msg msg;
     send msgs
   end

@@ -42,7 +42,6 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   // select dropdown placeholder variable
   sampleContract: number
-
   methodInput: any
   contract: any
   pendingMethodCalls: Array<any>
@@ -55,7 +54,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {    
     this.sampleContract = 0
-    this.state = 0
+    this.state = 1
   }
 
   ngOnInit() {
@@ -106,7 +105,6 @@ export class ContractComponent implements OnInit, OnDestroy {
   loadData() {
     let that = this
     this.zilliqaService.getContractHistory().then((data) => {
-      console.log(data)
       if (data.result && data.result.Error) {
 
       } else {
@@ -145,9 +143,9 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   runCode() {
     let that = this
+    
     console.log(`Running Contract Creation...`)
-    console.log(this.contract)
-    console.log(this.contract.gas)
+    this.zilliqaService.networkLoading = true // start loading till it's deployed
     this.zilliqaService.createContract(this.codeText, this.contract.ABI.initParams, this.contract.amount, this.contract.gas).then((data) => {
       that.newContractCreated(data.result, data.addr)
     }).catch((err) => {
@@ -173,7 +171,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
     this.zilliqaService.checkContractCode(this.codeText).then((data) => {
       if (data.result.result == 'success') {
-        that.codeError.text = 'Code checked successfully.'
+        that.codeError.text = 'Code parsing was successful.'
       } else if (data.result.result == 'error') {
         let text = data.result.message
 
@@ -187,14 +185,18 @@ export class ContractComponent implements OnInit, OnDestroy {
         var Range = ace.require('ace/range').Range
         that.codeError.line = that.editor.getEditor().getSession().addMarker(new Range(line, 0, line, col), 'ace_highlight-marker', 'fullLine')
         
-        that.codeError.text = 'Syntax Error: line ' + line+1 + ', column ' + col
-        that.editor.getEditor().getSession().setAnnotations([{
+        let ed = that.editor.getEditor()
+        that.codeError.text = 'Syntax Error: line ' + (parseInt(line)+1) + ', column ' + col
+        ed.getSession().setAnnotations([{
           row: line,
           column: col,
           text: that.codeError.text,
           type: 'error'
         }])
         
+        ed.renderer.scrollCursorIntoView({row: line, column: col}, 0.5)
+        ed.gotoLine(line+1, col, true)
+        ed.focus()
       }
     }).catch((err) => {
     })
@@ -212,6 +214,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
       that.zilliqaService.checkPendingTxns(txnid, i).then((data) => {
         console.log("Confirmed contract creation transaction: " + txnid)
+        that.zilliqaService.networkLoading = false
 
         // add it to createdContracts array
         that.createdContracts.push({
@@ -261,7 +264,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   checkBalance() {
     // true if balance < 50
-    return false//(this.zilliqaService.userWallet.balance < 50)
+    return (this.zilliqaService.userWallet.balance < 50)
   }
 
   updateSampleContract(newContract) {
@@ -304,8 +307,9 @@ export class ContractComponent implements OnInit, OnDestroy {
     var gas = this.contract.gas
 
     let that = this
+
     this.zilliqaService.callTxnMethod(contractAddr, method, amount, gas, params).then((data) => {
-      that.contract.result = that.contract.methodName + " call pending, txnid: " + data.result
+      that.contract.result = that.contract.methodName + " call pending (approx. wait time ~1 min), txnid: " + data.result
       that.pendingMethodCalls.push({callName: that.contract.methodName, txnid: data.result, count: 0})
     })
   }
@@ -313,9 +317,9 @@ export class ContractComponent implements OnInit, OnDestroy {
   checkPendingMethodCalls() {
     let that = this
     for(var i = 0; i < this.pendingMethodCalls.length; i++) {
-      console.log(`Checking pending method call: ` + this.pendingMethodCalls[i].callName)
+      console.log(`Checking pending method call (approx. wait time ~1 min): ` + this.pendingMethodCalls[i].callName)
 
-      // increment counter of number of times called, remove when it reaches 10
+      // increment counter of number of times called, remove when it reaches 1000
       if (this.pendingMethodCalls[i].count > 1000) {
         that.contract.result = ""
 
@@ -325,12 +329,14 @@ export class ContractComponent implements OnInit, OnDestroy {
       this.pendingMethodCalls[i].count += 1
       this.zilliqaService.checkPendingTxns(this.pendingMethodCalls[i].txnid, i).then((data) => {
         console.log(`Method call ` + that.pendingMethodCalls[data.index].callName + ` confirmed.`)
-
         // update the contract variable
         that.contract.result = that.contract.methodName + " call successful."
 
         // remove it from the array
         that.pendingMethodCalls.splice(data.index, 1)
+
+        // refresh state
+        that.refreshContractState()
       }).catch((err) => {
         console.log("Method call not confirmed.")
       })
@@ -346,12 +352,12 @@ export class ContractComponent implements OnInit, OnDestroy {
     var contractAddr = this.contract['contractAddr']
 
     let that = this
+    this.contract.state.result = null                                                                             
     this.zilliqaService.getContractState(contractAddr).then((data) => {
       that.contract.state.error = null
       that.contract.state.result = data.result
     }).catch((err) => {
       that.contract.state.error = "Contract state call failed: " + JSON.stringify(err)
-      that.contract.state.result = null
     })
   }
 
@@ -361,7 +367,7 @@ export class ContractComponent implements OnInit, OnDestroy {
     let that = this
     this.zilliqaService.getContractCode(contractAddr).then((data) => {
       that.contract.code.error = null
-      that.contract.code.result = data.result
+      that.contract.code.result = data.result.code
       that.codeText = that.contract.code.result
 
       // parse the code to get the selectedTransitions
@@ -425,6 +431,7 @@ export class ContractComponent implements OnInit, OnDestroy {
   parseInitParams(str) {
     var list = []
     str = this.removeComments(str)
+    let that = this
 
     try {
       var offset = str.match(/\ncontract /)
@@ -446,7 +453,12 @@ export class ContractComponent implements OnInit, OnDestroy {
       params.map(function(param) {
         var name = param.split(':')[0]
         var type = param.split(':')[1]
-        list.push({'vname': name.trim(), 'type': type.trim(), 'value': ''})
+        var val = ''
+
+        if (name.trim() == 'owner' && type.trim() == 'Address') {
+          val = '0x' + that.zilliqaService.userWallet.address.toLowerCase()
+        }
+        list.push({'vname': name.trim(), 'type': type.trim(), 'value': val})
       })
     } catch (e) {
       console.log('Error in parsing initialization params.')
@@ -487,5 +499,25 @@ export class ContractComponent implements OnInit, OnDestroy {
 
     this.contract.methodName = newTransition.methodName
     this.contract.params = newTransition.params.slice()
+  }
+
+  copyToClipboard() {
+    // create temp element
+    var copyElement = document.createElement("pre")
+    var text = JSON.stringify(this.contract.state.result, null, 2)
+    copyElement.appendChild(document.createTextNode(text))
+    copyElement.id = 'tempCopyToClipboard'
+    document.body.appendChild(copyElement)
+
+    // select the text
+    var range = document.createRange()
+    range.selectNode(copyElement)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+
+    // copy & cleanup
+    document.execCommand('copy')
+    window.getSelection().removeAllRanges()
+    copyElement.remove()
   }
 }

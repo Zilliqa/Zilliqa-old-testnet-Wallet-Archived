@@ -467,7 +467,6 @@ export class ZilliqaService {
           let id = data.result['ID']
           let amount = data.result['amount']
           let toAddr = data.result['toAddr']
-          console.log(id, amount, toAddr)
           
           // get the index of this txn in the recentTxns array
           let i = that.recentTxns.findIndex(txn => txn.txHash === id)
@@ -501,7 +500,7 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing the required data
    */
   createContract(codeStr, initParams, amount, gas): Promise<any> {
-    this.startLoading()
+    // this.startLoading()
     var deferred = new $.Deferred();
     let that = this
 
@@ -543,7 +542,7 @@ export class ZilliqaService {
             addr: contractAddr
           })
         }
-        that.endLoading()
+        // that.endLoading()
       })
     })
     return deferred.promise()
@@ -617,11 +616,8 @@ export class ZilliqaService {
 
       this.node.createTransaction(txn, function (err, data) {
         if (err || data.error) {
-          console.log(err || data.error)
           deferred.reject(err)
         } else {
-          console.log(data.result)
-
           deferred.resolve({
             result: data.result
           })
