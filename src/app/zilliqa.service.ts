@@ -19,7 +19,9 @@ import 'setimmediate';
 import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { Constants } from './constants';
+import { environment } from '../environments/environment';
 import { zLib } from 'z-lib';
+
 import { secp256k1, randomBytes, pbkdf2Sync, sha3, sha256 } from 'bcrypto';
 import * as scryptAsync from 'scrypt-async';
 import * as aesjs from 'aes-js';
@@ -31,21 +33,23 @@ declare const Buffer
 @Injectable()
 export class ZilliqaService {
 
-  zlib: any;
-  node: any;
+  zlib: any
+  node: any
   walletData: {
     version: null,
     encryptedWalletFile: null
   };
-  nodeData: {};
+  nodeData: {}
   userWallet: Wallet
   networkLoading: boolean
+  envName: string
   popupTriggered: boolean
   recentTxns: Array<any>
 
   constructor(private http: HttpClient) {
     this.networkLoading = false
     this.popupTriggered = false
+    this.envName = environment.envName
     this.userWallet = new Wallet()
     this.recentTxns = []
     this.walletData = {
@@ -63,11 +67,14 @@ export class ZilliqaService {
    * connect to a node using the zilliqa js lib and store its reference
    */
   initLib() {
-    let node_urls = Constants.NODE_URLS
-    let randomNode = node_urls[Math.floor(Math.random() * node_urls.length)]
+    let nodeUrl = Constants.API_URL
+
+    if (this.envName == 'prod' && environment.API_URL) {
+      nodeUrl = environment.API_URL
+    }
 
     this.zlib = new zLib({
-      nodeUrl: randomNode
+      nodeUrl: nodeUrl
     })
     this.node = this.zlib.getNode()
   }

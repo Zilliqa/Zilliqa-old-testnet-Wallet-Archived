@@ -14,11 +14,19 @@ This project is experimental and still under development.
 
 ## Running the Zilliqa Wallet
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `ng serve` for a dev server.
+
+To run the production server, first set the environment variable `export API_URL=http://localhost:4201` (default value: `"http://localhost:4201"`)
+
+Then run `npm start`. Navigate to `http://localhost:4100/`. The app will automatically reload if you change any of the source files.
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+To build the production server, first set the environment variable `export API_URL=http://localhost:4201` (default value: `"http://localhost:4201"`)
+
+Then run `npm build` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+The build artifacts will be stored in the `dist/` directory.
 
 ## Running unit tests
 

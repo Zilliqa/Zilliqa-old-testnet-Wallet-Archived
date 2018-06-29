@@ -8,6 +8,7 @@
   },
   "exclude": [
     "test.ts",
+    "set-env.ts",
     "**/*.spec.ts"
   ]
 }
