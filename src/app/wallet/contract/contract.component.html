@@ -57,9 +57,9 @@
 
 				<div class="row mt-3">
 					<div class="col text-center">
-						<button class="btn btn-large zil-btn cursorHand" (click)="checkCode()">Check Contract</button>
-
+						<button class="btn btn-large zil-btn cursorHand" (click)="checkCode()">Check for Parsing Errors</button>
 						<button class="btn btn-large zil-btn cursorHand" [disabled]="checkBalance()" (click)="runCode()">Deploy Contract</button>
+						<!--<button class="btn btn-large zil-btn cursorHand mt-2 comingSoon" disabled><span>Check for Static Type Safety</span></button>-->
 					</div>
 				</div>
 
@@ -139,7 +139,7 @@
 							</label>
 						</span>
 
-						<button class="btn zil-btn cursorHand align-bottom" (click)="refreshContract()">Get State</button>
+						<button class="btn zil-btn cursorHand align-bottom mt-2" (click)="refreshContract()">Get State</button>
 					</div>
 				</div>
 

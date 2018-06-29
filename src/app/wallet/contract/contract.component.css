@@ -32,6 +32,14 @@ h3.card-title, .hnb {
   max-height: 200px; 
   overflow: scroll;
 }
+.comingSoon:hover span{
+  display: none;
+}
+.comingSoon:hover:after{
+  content: 'Coming Soon!';
+  margin-left: 50px;
+  margin-right: 50px;
+}
 @media (max-width: 1024px) {
   .card-icon {
       font-size: 3rem;
