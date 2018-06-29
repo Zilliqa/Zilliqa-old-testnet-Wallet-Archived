@@ -47,10 +47,11 @@
 						<label>Sample Contract:</label>
 
 						<select [(ngModel)]="sampleContract" (change)="updateSampleContract($event.target.value)" class="custom-select mr-2 small-text">
-							<option selected value="0">Crowdfund</option>
-							<option value="1">Fungible Token</option>
-							<option value="2">ZilGame</option>
-							<option value="3">HelloWorld</option>
+							<option selected value="0">HelloWorld</option>
+							<option value="1">Crowdfund</option>
+							<option value="2">Fungible Token</option>
+							<option value="3">ZilGame</option>
+							<option value="4">Auction</option>
 						</select>
 					</div>
 				</div>
@@ -107,7 +108,7 @@
 
 				<div class="row">
 					<div class="col pendingTxnsContainer text-center">
-						<p>{{pendingTxns.length}} pending transactions</p>
+						<p>{{pendingTxns.length}} pending transactions (approx wait ~1 min)</p>
 						<span *ngFor="let txn of pendingTxns">
 							TxnId: {{txn.id}}, Contract Address: {{txn.contractAddr}}
 						</span>
@@ -116,7 +117,6 @@
 
 				<div class="row">
 					<div class="col pendingTxnsContainer text-center">
-						<p>{{createdContracts.length}} created contracts</p>
 						<span *ngFor="let txn of createdContracts">
 							<p>Contract Address: <a class="btn btn-large zil-btn mt-2" (click)="setState(2, txn.contractAddr)">{{txn.contractAddr}}</a></p>
 						</span>
@@ -146,6 +146,11 @@
 				<div class="row mt-2" *ngIf="contract.state.result">
 					<div class="col json-format">
 						<json-formatter [json]="contract.state.result" [open]="2"></json-formatter>
+					</div>
+				</div>
+				<div class="row mt-1" *ngIf="contract.state.result">
+					<div class="col text-right">
+						<span class="btn zil-btn cursorHand copy-btn" (click)="copyToClipboard()"><i class="fa fa-copy"></i>&nbsp;&nbsp;Copy</span>
 					</div>
 				</div>
 

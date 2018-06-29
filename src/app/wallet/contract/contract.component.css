@@ -40,6 +40,10 @@ h3.card-title, .hnb {
   margin-left: 50px;
   margin-right: 50px;
 }
+.copy-btn:active {
+  box-shadow: 2px 2px 0px #49c1bf;
+  transition: 0s;
+}
 @media (max-width: 1024px) {
   .card-icon {
       font-size: 3rem;

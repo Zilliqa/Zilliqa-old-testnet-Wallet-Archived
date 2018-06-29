@@ -500,7 +500,7 @@ export class ZilliqaService {
    * @returns {Promise} Promise object containing the required data
    */
   createContract(codeStr, initParams, amount, gas): Promise<any> {
-    this.startLoading()
+    // this.startLoading()
     var deferred = new $.Deferred();
     let that = this
 

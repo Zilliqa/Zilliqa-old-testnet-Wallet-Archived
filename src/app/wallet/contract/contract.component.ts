@@ -54,7 +54,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router, public zilliqaService: ZilliqaService, private networkService: NetworkService) {    
     this.sampleContract = 0
-    this.state = 0
+    this.state = 1
   }
 
   ngOnInit() {
@@ -185,14 +185,18 @@ export class ContractComponent implements OnInit, OnDestroy {
         var Range = ace.require('ace/range').Range
         that.codeError.line = that.editor.getEditor().getSession().addMarker(new Range(line, 0, line, col), 'ace_highlight-marker', 'fullLine')
         
-        that.codeError.text = 'Syntax Error: line ' + line+1 + ', column ' + col
-        that.editor.getEditor().getSession().setAnnotations([{
+        let ed = that.editor.getEditor()
+        that.codeError.text = 'Syntax Error: line ' + (parseInt(line)+1) + ', column ' + col
+        ed.getSession().setAnnotations([{
           row: line,
           column: col,
           text: that.codeError.text,
           type: 'error'
         }])
         
+        ed.renderer.scrollCursorIntoView({row: line, column: col}, 0.5)
+        ed.gotoLine(line+1, col, true)
+        ed.focus()
       }
     }).catch((err) => {
     })
@@ -260,7 +264,7 @@ export class ContractComponent implements OnInit, OnDestroy {
 
   checkBalance() {
     // true if balance < 50
-    return false//(this.zilliqaService.userWallet.balance < 50)
+    return (this.zilliqaService.userWallet.balance < 50)
   }
 
   updateSampleContract(newContract) {
@@ -427,6 +431,7 @@ export class ContractComponent implements OnInit, OnDestroy {
   parseInitParams(str) {
     var list = []
     str = this.removeComments(str)
+    let that = this
 
     try {
       var offset = str.match(/\ncontract /)
@@ -448,7 +453,12 @@ export class ContractComponent implements OnInit, OnDestroy {
       params.map(function(param) {
         var name = param.split(':')[0]
         var type = param.split(':')[1]
-        list.push({'vname': name.trim(), 'type': type.trim(), 'value': ''})
+        var val = ''
+
+        if (name.trim() == 'owner' && type.trim() == 'Address') {
+          val = '0x' + that.zilliqaService.userWallet.address.toLowerCase()
+        }
+        list.push({'vname': name.trim(), 'type': type.trim(), 'value': val})
       })
     } catch (e) {
       console.log('Error in parsing initialization params.')
@@ -489,5 +499,25 @@ export class ContractComponent implements OnInit, OnDestroy {
 
     this.contract.methodName = newTransition.methodName
     this.contract.params = newTransition.params.slice()
+  }
+
+  copyToClipboard() {
+    // create temp element
+    var copyElement = document.createElement("pre")
+    var text = JSON.stringify(this.contract.state.result, null, 2)
+    copyElement.appendChild(document.createTextNode(text))
+    copyElement.id = 'tempCopyToClipboard'
+    document.body.appendChild(copyElement)
+
+    // select the text
+    var range = document.createRange()
+    range.selectNode(copyElement)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+
+    // copy & cleanup
+    document.execCommand('copy')
+    window.getSelection().removeAllRanges()
+    copyElement.remove()
   }
 }
