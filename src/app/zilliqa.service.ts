@@ -491,7 +491,7 @@ export class ZilliqaService {
           let toAddr = data.result['toAddr']
           
           // get the index of this txn in the recentTxns array
-          let i = that.recentTxns.findIndex(txn => txn.txHash === id)
+          let i = that.recentTxns.findIndex(txn => txn.id === id)
           if (i == -1) return
 
           that.recentTxns[i]['confirmed'] = true
@@ -501,6 +501,9 @@ export class ZilliqaService {
 
           // cancel further checking of this txn
           clearInterval(that.recentTxns[i].tid)
+
+          // update wallet balance
+          that.refreshBalance()
         }
       })
     }, 5000)
@@ -686,7 +689,24 @@ export class ZilliqaService {
       that.endLoading()
     })
 
-    this.endLoading()
+    return deferred.promise()
+  }
+
+  getContractInit(addr): Promise<any> {
+    this.startLoading()
+    var deferred = new $.Deferred();
+    let that = this
+
+    this.node.getSmartContractInit({address: addr}, function (err, data) {
+      if (err || (data.result && data.result.Error)) {
+        deferred.reject(err)
+      } else {
+        deferred.resolve({
+          result: data.result
+        })
+      }
+      that.endLoading()
+    })
 
     return deferred.promise()
   }
