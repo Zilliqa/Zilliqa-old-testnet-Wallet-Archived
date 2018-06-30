@@ -31,8 +31,8 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'base', pathMatch: 'full' },
       { path: 'base', component: WalletbaseComponent },
-      { path: 'send', component: WalletsendComponent },
-      { path: 'contract', component: ContractComponent },
+      { path: 'send', component: WalletsendComponent }
+      // { path: 'contract', component: ContractComponent },
       // { path: 'history', component: WallethistoryComponent }
     ]
   },

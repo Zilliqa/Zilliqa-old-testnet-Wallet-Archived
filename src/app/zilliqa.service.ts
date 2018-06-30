@@ -307,6 +307,18 @@ export class ZilliqaService {
   }
 
   /**
+   * get the public key of an account using its private key
+   * @returns {string} public key of the account
+   */
+  getPublicKeyfromPrivateKey(): string {
+    let privateKey = this.userWallet.privateKey
+    if (typeof(privateKey) == 'string') privateKey = new Buffer(privateKey, 'hex')
+
+    let pubKey = secp256k1.publicKeyCreate(privateKey, true)
+    return pubKey.toString('hex')
+  }
+
+  /**
    * generate a new public-private keypair and use it to populate userWallet
    * @returns {string} the newly created private key
    */
@@ -392,6 +404,9 @@ export class ZilliqaService {
       clearInterval(this.recentTxns[i].tid)
     }
     this.recentTxns = []
+
+    // clear any loading spinner
+    this.networkLoading = false
   }
 
   /**
