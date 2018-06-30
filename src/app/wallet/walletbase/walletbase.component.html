@@ -1,10 +1,10 @@
 <div class="row">
 	<div class="col zblue">
 		<a class="btn btn-large btn-block text-white" routerLink="/wallet/send"><h3 class="noMargin">Send</h3></a>
-	</div>
+	</div><!-- 
 	<div class="col zblue">
 		<a class="btn btn-large btn-block text-white" routerLink="/wallet/contract"><h3 class="noMargin">Contracts</h3></a>
-	</div>
+	</div> -->
 </div>
 
 <div class="row mt-5">
@@ -15,6 +15,16 @@
 <div class="row">
 	<div class="col text-center">
 		<p class="breakword">0x{{wallet.address | uppercase}}</p>
+	</div>
+</div>
+<div class="row mt-2">
+	<div class="col text-center">
+		<h4>Public Key</h4>
+	</div>
+</div>
+<div class="row">
+	<div class="col text-center">
+		<p class="breakword">0x{{userPubkey | uppercase}}</p>
 	</div>
 </div>
 <div class="row mt-2">

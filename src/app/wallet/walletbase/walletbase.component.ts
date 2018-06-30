@@ -27,6 +27,7 @@ export class WalletbaseComponent implements OnInit {
   revealBtn: string
   walletEncryptPassphrase: string
   wallet: Wallet
+  userPubkey: string
   loading: boolean
 
   constructor(public zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
@@ -39,6 +40,7 @@ export class WalletbaseComponent implements OnInit {
 
   ngOnInit() {
     this.wallet = this.zilliqaService.getWallet()
+    this.userPubkey = this.zilliqaService.getPublicKeyfromPrivateKey()
     this.zilliqaService.triggerPopup()
   }
 
