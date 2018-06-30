@@ -40,6 +40,7 @@ export class CreateComponent implements OnInit, OnDestroy {
   walletDecryptKey: string
   walletFilename: string
   wallet: Wallet
+  userPubkey: string
   loading: boolean
   
   @Input() importPrivateKey = ''
@@ -57,6 +58,7 @@ export class CreateComponent implements OnInit, OnDestroy {
     this.wallet = new Wallet()
     this.loading = false
     this.walletFilename = ''
+    this.userPubkey = ''
   }
 
   ngOnDestroy() {
@@ -91,6 +93,7 @@ export class CreateComponent implements OnInit, OnDestroy {
   generateWallet() {
     this.generatedPrivateKey = this.zilliqaService.createWallet()
     this.wallet = this.zilliqaService.getWallet()
+    this.userPubkey = this.zilliqaService.getPublicKeyfromPrivateKey()
     this.setState(2);
   }
 

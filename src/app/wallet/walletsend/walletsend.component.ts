@@ -48,7 +48,7 @@ export class WalletsendComponent implements OnInit {
   ngOnInit() {
     this.wallet = this.zilliqaService.getWallet()
     this.payment = {
-      amount: 0,
+      amount: 1,
       address: '',
       gasPrice: 1,
       gasLimit: 1
@@ -101,13 +101,13 @@ export class WalletsendComponent implements OnInit {
   }
 
   invalidAmount() {
-    // true if blank or negative or higher than wallet balance - 0 is allowed
-    return (this.payment.amount == null) || (this.payment.amount < 0) || (this.payment.amount > this.wallet.balance)
+    // true if blank or negative or higher than wallet balance - 0 is not allowed
+    return (this.payment.amount == null) || (this.payment.amount <= 0) || (this.payment.amount > this.wallet.balance)
   }
 
   invalidGas() {
-    // true if blank or negative or higher than wallet balance - 0 is allowed
-    return (this.payment.gasLimit == null) || (this.payment.gasLimit < 0) || (this.payment.gasLimit > this.zilliqaService.userWallet.balance)
+    // true if blank or negative or higher than wallet balance - 0 is not allowed
+    return (this.payment.gasLimit == null) || (this.payment.gasLimit <= 0) || (this.payment.gasLimit > this.zilliqaService.userWallet.balance)
   }
 
   invalidPayment() {

@@ -57,7 +57,7 @@
 				<tbody>
 					<tr *ngFor="let txn of zilliqaService.recentTxns">
 						<td>{{txn['id']}}</td>
-						<th>{{(txn['confirmed'])? 'Confirmed': 'Pending'}}</th>
+						<th>{{(txn['confirmed'])? 'Confirmed': 'Pending (approx wait ~1 min)'}}</th>
 						<td>{{txn['amount']}}</td>
 						<td>{{txn['toAddr']}}</td>
 					</tr>
