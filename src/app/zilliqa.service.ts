@@ -20,7 +20,7 @@ import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { Constants } from './constants';
 import { environment } from '../environments/environment';
-import { zLib } from 'z-lib';
+import { Zilliqa } from 'zilliqa.js';
 
 import { secp256k1, randomBytes, pbkdf2Sync, sha3, sha256 } from 'bcrypto';
 import * as scryptAsync from 'scrypt-async';
@@ -33,7 +33,7 @@ declare const Buffer
 @Injectable()
 export class ZilliqaService {
 
-  zlib: any
+  zilliqa: any
   node: any
   walletData: {
     version: null,
@@ -73,10 +73,10 @@ export class ZilliqaService {
       nodeUrl = environment.API_URL
     }
 
-    this.zlib = new zLib({
+    this.zilliqa = new Zilliqa({
       nodeUrl: nodeUrl
     })
-    this.node = this.zlib.getNode()
+    this.node = this.zilliqa.getNode()
   }
 
   /**
@@ -451,7 +451,7 @@ export class ZilliqaService {
     this.startLoading()
     var deferred = new $.Deferred()
 
-    let txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
+    let txn = this.zilliqa.util.createTransactionJson(this.userWallet.privateKey, {
       version: 0,
       nonce: this.userWallet.nonce + 1,
       to: payment.address,
@@ -536,7 +536,7 @@ export class ZilliqaService {
     // always update account to ensure latest nonce
     this.updateAccount().then(() => {
       console.log('now nonce is ' + that.userWallet.nonce)
-      var txn = this.zlib.util.createTransactionJson(this.userWallet.privateKey, {
+      var txn = this.zilliqa.util.createTransactionJson(this.userWallet.privateKey, {
         version: 0,
         nonce: +that.userWallet.nonce + 1,
         to: '0000000000000000000000000000000000000000',
@@ -554,7 +554,7 @@ export class ZilliqaService {
           deferred.reject(err)
         } else {
           // generate the address of the newly created contract
-          let nonceStr = that.zlib.util.intToByteArray(that.userWallet.nonce, 64).join('')
+          let nonceStr = that.zilliqa.util.intToByteArray(that.userWallet.nonce, 64).join('')
           let newstr = that.userWallet.address + nonceStr
 
           var contractPubKey = sha256.digest(new Buffer(newstr, 'hex'))// sha256 hash of address+nonce
@@ -626,7 +626,7 @@ export class ZilliqaService {
     // always update account to ensure latest nonce
     this.updateAccount().then(() => {
       // setup a dummy transaction
-      var txn = that.zlib.util.createTransactionJson(that.userWallet.privateKey, {
+      var txn = that.zilliqa.util.createTransactionJson(that.userWallet.privateKey, {
         version: 0,
         nonce: +that.userWallet.nonce + 1,
         to: addr,
