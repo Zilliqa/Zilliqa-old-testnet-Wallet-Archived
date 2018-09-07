@@ -14,6 +14,7 @@ import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { catchError, map, tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BN } from 'bn.js'
 
 import 'setimmediate';
 import * as $ from 'jquery';
@@ -455,7 +456,7 @@ export class ZilliqaService {
       version: 0,
       nonce: this.userWallet.nonce + 1,
       to: payment.address,
-      amount: payment.amount,
+      amount: new BN(+payment.amount),
       gasPrice: payment.gasPrice,
       gasLimit: payment.gasLimit
     })
