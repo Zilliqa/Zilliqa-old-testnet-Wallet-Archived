@@ -20,7 +20,7 @@ import * as $ from 'jquery';
 import { Wallet } from './wallet/wallet';
 import { Constants } from './constants';
 import { environment } from '../environments/environment';
-import { Zilliqa } from 'zilliqa.js';
+import { Zilliqa } from 'zilliqa-js';
 
 import { secp256k1, randomBytes, pbkdf2Sync, sha3, sha256 } from 'bcrypto';
 import * as scryptAsync from 'scrypt-async';
