@@ -15,7 +15,7 @@ install:
   - npm install
 
 script:
-  - echo "Can we run npm test here?" #TODO: add testing tasks
+  - npm run-script build
 
 after_success:
   - docker --version
