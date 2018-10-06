@@ -36,7 +36,8 @@
     "rxjs": "^5.5.8",
     "scrypt-async": "^2.0.0",
     "setimmediate": "^1.0.5",
-    "zilliqa.js": "github:Zilliqa/Zilliqa-JavaScript-Library",
+    "zilliqa-js": "^0.1.19",
+    "bcrypto": "^1.1.0",
     "zone.js": "^0.8.24"
   },
   "devDependencies": {
