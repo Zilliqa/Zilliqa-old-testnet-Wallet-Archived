@@ -23,7 +23,7 @@ after_success:
       pip install --user awscli;
       export PATH=$PATH:$HOME/.local/bin;
       account_id=$(aws sts get-caller-identity --output text --query 'Account');
-      region_id=us-east-1;
+      region_id=us-west-2;
       registry_url=${account_id}.dkr.ecr.${region_id}.amazonaws.com/wallet;
       eval $(aws ecr get-login --no-include-email --region ${region_id});
       docker build -t ${registry_url} .;
