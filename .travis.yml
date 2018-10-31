@@ -6,8 +6,6 @@ node_js:
 branches:
   only:
     - master
-    # TODO: remove this line after testing
-    - feature/migrate
 
 services:
   - docker
