@@ -23,7 +23,12 @@
     "@angular/platform-browser": "^5.2.9",
     "@angular/platform-browser-dynamic": "^5.2.9",
     "@angular/router": "^5.2.9",
+    "@zilliqa-js/account": "^0.2.6",
+    "@zilliqa-js/core": "^0.2.6",
+    "@zilliqa-js/crypto": "^0.2.6",
+    "@zilliqa-js/util": "^0.2.6",
     "aes-js": "^3.1.0",
+    "bcrypto": "^1.1.0",
     "bootstrap": "4.0.0-beta.2",
     "core-js": "^2.5.4",
     "font-awesome": "^4.7.0",
@@ -37,7 +42,6 @@
     "scrypt-async": "^2.0.0",
     "setimmediate": "^1.0.5",
     "zilliqa-js": "^0.1.19",
-    "bcrypto": "^1.1.0",
     "zone.js": "^0.8.24"
   },
   "devDependencies": {
@@ -60,6 +64,6 @@
     "protractor": "^5.3.2",
     "ts-node": "~3.2.0",
     "tslint": "~5.7.0",
-    "typescript": "~2.4.2"
+    "typescript": "^3.1.6"
   }
 }
