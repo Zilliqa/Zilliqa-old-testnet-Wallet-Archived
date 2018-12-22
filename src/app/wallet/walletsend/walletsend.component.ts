@@ -7,6 +7,8 @@
 // another public or private blockchain network. This source code is provided ‘as is’ and no
 // warranties are given as to title or non-infringement, merchantability or fitness for purpose
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed.
+const MIN_GAS_PRICE = 10 ** 9;
+const MIN_GAS_LIMIT = 1;
 
 import {
   Component,
@@ -55,8 +57,8 @@ export class WalletsendComponent implements OnInit {
     this.payment = {
       amount: 1,
       address: "",
-      gasPrice: 100,
-      gasLimit: 1000
+      gasPrice: MIN_GAS_PRICE,
+      gasLimit: MIN_GAS_LIMIT
     };
 
     // recaptcha hack
@@ -119,7 +121,9 @@ export class WalletsendComponent implements OnInit {
     return (
       this.payment.gasLimit == null ||
       this.payment.gasLimit <= 0 ||
-      this.payment.gasLimit > this.zilliqaService.userWallet.balance
+      this.payment.gasPrice < MIN_GAS_PRICE ||
+      this.payment.gasLimit * this.payment.gasPrice >
+        this.zilliqaService.userWallet.balance
     );
   }
 
