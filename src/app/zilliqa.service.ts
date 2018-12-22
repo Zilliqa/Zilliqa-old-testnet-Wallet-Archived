@@ -559,7 +559,7 @@ export class ZilliqaService {
     let tid = setInterval(() => {
       that.node.getTransaction({ txHash: args.txnId }, function(err, data) {
         console.log("Querying tx: ", data);
-        if (err || data.result.error || !data.result["ID"]) {
+        if (err || data.error || !data.result) {
           return;
         } else {
           console.log('Success: ', data);
