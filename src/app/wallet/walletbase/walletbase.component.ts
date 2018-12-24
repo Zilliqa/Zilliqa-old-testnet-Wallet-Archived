@@ -11,10 +11,8 @@
 
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 
-
 import { Wallet } from '../wallet'
 import { ZilliqaService } from '../../zilliqa.service';
-
 
 @Component({
   selector: 'app-walletbase',
@@ -31,7 +29,7 @@ export class WalletbaseComponent implements OnInit {
   loading: boolean
 
   constructor(public zilliqaService: ZilliqaService, private ref: ChangeDetectorRef) {
-    this.wallet = new Wallet()
+    this.wallet = new Wallet();
     this.privateKeyDisplay = '****************************************************************'
     this.revealBtn = 'Show'
     this.walletEncryptPassphrase = ''
@@ -39,7 +37,7 @@ export class WalletbaseComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.wallet = this.zilliqaService.getWallet()
+    this.wallet = this.zilliqaService.getWallet();
     this.userPubkey = this.zilliqaService.getPublicKeyfromPrivateKey()
     this.zilliqaService.triggerPopup()
   }

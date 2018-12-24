@@ -321,12 +321,12 @@ export class ZilliqaService {
       if (err || data.error) {
         deferred.reject({ error: err });
       } else {
-        let newUserWallet = {
+        const newUserWallet = new Wallet({
           address: that.userWallet.address,
           balance: data.result.balance,
           nonce: data.result.nonce,
           privateKey: that.userWallet.privateKey
-        };
+        });
         that.userWallet = newUserWallet;
 
         deferred.resolve({
@@ -375,12 +375,12 @@ export class ZilliqaService {
     let key = secp256k1.generatePrivateKey();
 
     // account will be registered only when it receives ZIL
-    this.userWallet = {
+    this.userWallet = new Wallet({
       address: this.getAddressFromPrivateKey(key),
       privateKey: key.toString("hex"),
       balance: 0,
       nonce: 0
-    };
+    });
 
     return key.toString("hex");
   }
@@ -412,15 +412,27 @@ export class ZilliqaService {
         // get balance from API
         let that = this;
         this.node.getBalance({ address: addr }, function(err, data) {
-          if (err || data.error) {
+          if (err || (data.error && data.error.code !== -5)) {
             deferred.reject({ error: err });
+          } else if (data.error && data.error.code === -5) {
+            that.userWallet = new Wallet({
+              address: addr,
+              balance: 0,
+              nonce: 0,
+              privateKey: privateKey.toString("hex")
+            });
+
+            deferred.resolve({
+              result: true
+            });
           } else {
-            that.userWallet = {
+            console.log(data);
+            that.userWallet = new Wallet({
               address: addr,
               balance: data.result.balance,
               nonce: data.result.nonce,
               privateKey: privateKey.toString("hex")
-            };
+            });
 
             deferred.resolve({
               result: true
@@ -562,7 +574,7 @@ export class ZilliqaService {
         if (err || data.error || !data.result) {
           return;
         } else {
-          console.log('Success: ', data);
+          console.log("Success: ", data);
           let id = data.result["ID"];
           let amount = data.result["amount"];
           let toAddr = data.result["toAddr"];
