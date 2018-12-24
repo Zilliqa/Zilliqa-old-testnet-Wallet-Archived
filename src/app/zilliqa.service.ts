@@ -412,8 +412,19 @@ export class ZilliqaService {
         // get balance from API
         let that = this;
         this.node.getBalance({ address: addr }, function(err, data) {
-          if (err || data.error) {
+          if (err || (data.error && data.error.code !== -5)) {
             deferred.reject({ error: err });
+          } else if (data.error.code === -5) {
+            that.userWallet = {
+              address: addr,
+              balance: 0,
+              nonce: 0,
+              privateKey: privateKey.toString("hex")
+            };
+
+            deferred.resolve({
+              result: true
+            });
           } else {
             that.userWallet = {
               address: addr,
@@ -562,7 +573,7 @@ export class ZilliqaService {
         if (err || data.error || !data.result) {
           return;
         } else {
-          console.log('Success: ', data);
+          console.log("Success: ", data);
           let id = data.result["ID"];
           let amount = data.result["amount"];
           let toAddr = data.result["toAddr"];
