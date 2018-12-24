@@ -34,7 +34,7 @@
 </div>
 <div class="row">
 	<div class="col text-center">
-		<p><span>{{wallet.balance}}</span> ZIL</p>
+		<p><span>{{wallet.getZilBalance()}}</span> ZIL</p>
 	</div>
 </div>
 <div *ngIf="zilliqaService.recentTxns && zilliqaService.recentTxns.length > 0">

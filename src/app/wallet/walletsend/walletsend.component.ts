@@ -9,6 +9,7 @@
 // and, to the extent permitted by law, all liability for your use of the code is disclaimed.
 const MIN_GAS_PRICE = 10 ** 9;
 const MIN_GAS_LIMIT = 1;
+const DECIMALS = 10 ** 6;
 
 import {
   Component,
@@ -17,6 +18,8 @@ import {
   OnDestroy,
   ChangeDetectorRef
 } from "@angular/core";
+
+import { BN, units } from "@zilliqa-js/util";
 
 import { Wallet } from "../wallet";
 import { Payment } from "./payment";
@@ -112,18 +115,9 @@ export class WalletsendComponent implements OnInit {
     return (
       this.payment.amount == null ||
       this.payment.amount <= 0 ||
-      this.payment.amount > this.wallet.balance
-    );
-  }
-
-  invalidGas() {
-    // true if blank or negative or higher than wallet balance - 0 is not allowed
-    return (
-      this.payment.gasLimit == null ||
-      this.payment.gasLimit <= 0 ||
-      this.payment.gasPrice < MIN_GAS_PRICE ||
-      this.payment.gasLimit * this.payment.gasPrice >
-        this.zilliqaService.userWallet.balance
+      units
+        .toQa(this.payment.amount, units.Units.Zil)
+        .gt(new BN(this.wallet.balance))
     );
   }
 
@@ -134,8 +128,7 @@ export class WalletsendComponent implements OnInit {
     return (
       !addr.match(/^[0-9a-fA-F]{40}$/) ||
       !this.recaptchaFilled ||
-      this.invalidAmount() ||
-      this.invalidGas()
+      this.invalidAmount()
     );
   }
 
