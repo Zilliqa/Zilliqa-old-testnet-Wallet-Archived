@@ -115,6 +115,8 @@ export class WalletsendComponent implements OnInit {
     return (
       this.payment.amount == null ||
       this.payment.amount <= 0 ||
+      // the final number has to be an integer
+      (this.payment.amount * 10 ** 12) % 1 !== 0 ||
       units
         .toQa(this.payment.amount, units.Units.Zil)
         .gt(new BN(this.wallet.balance))
@@ -134,6 +136,10 @@ export class WalletsendComponent implements OnInit {
 
   onSend() {
     this.payment.address = this.convertHexAddress();
+    // @ts-ignore
+    this.payment.amount = units
+      .toQa(this.payment.amount, units.Units.Zil)
+      .toString();
 
     let that = this;
     this.zilliqaService.sendPayment(this.payment).then(
